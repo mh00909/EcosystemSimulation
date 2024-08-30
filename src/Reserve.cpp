@@ -30,40 +30,51 @@ Reserve::Reserve(int w, int h, int numHerbivores, int numCarnivores, int numPlan
     }
 }
 
+
 void Reserve::simulateStep() {
-    QMutexLocker locker(&mutex); // Blokuje mutex w tej funkcji
+    QMutexLocker locker(&mutex);
+
     int energyLossPerStep = 10;
+    int aliveHerbivores = 0, aliveCarnivores = 0;
+    double totalAgeHerbivores = 0, totalEnergyHerbivores = 0;
+    double totalAgeCarnivores = 0, totalEnergyCarnivores = 0;
 
     // Obsługa ruchu i starzenia się organizmów
     for (auto &herb : herbivores) {
         if (herb->isAlive()) {
             herb->ageAndConsumeEnergy(energyLossPerStep);
             herb->move(max_organism_move, max_organism_move, width, height);
+            aliveHerbivores++;
+            totalAgeHerbivores += herb->getAge();
+            totalEnergyHerbivores += herb->getEnergy();
         }
     }
+
     for (auto &carn : carnivores) {
         if (carn->isAlive()) {
             carn->ageAndConsumeEnergy(energyLossPerStep);
             carn->move(max_organism_move, max_organism_move, width, height);
+            aliveCarnivores++;
+            totalAgeCarnivores += carn->getAge();
+            totalEnergyCarnivores += carn->getEnergy();
         }
     }
 
-    // Obsługa rozmnażania i interakcji między organizmami
+    stats.averageLifeSpanHerbivores = aliveHerbivores > 0 ? totalAgeHerbivores / aliveHerbivores : 0;
+    stats.averageEnergyHerbivores = aliveHerbivores > 0 ? totalEnergyHerbivores / aliveHerbivores : 0;
+    stats.averageLifeSpanCarnivores = aliveCarnivores > 0 ? totalAgeCarnivores / aliveCarnivores : 0;
+    stats.averageEnergyCarnivores = aliveCarnivores > 0 ? totalEnergyCarnivores / aliveCarnivores : 0;
+
     handleReproduction();
     handleInteractions();
     removeDeadOrganisms();
 
-    bool allHerbivoresDead = std::all_of(herbivores.begin(), herbivores.end(), [](const std::unique_ptr<Herbivore>& herb) {
-        return !herb->isAlive();
-    });
+    bool allHerbivoresDead = (aliveHerbivores == 0);
+    bool allCarnivoresDead = (aliveCarnivores == 0);
 
-    bool allCarnivoresDead = std::all_of(carnivores.begin(), carnivores.end(), [](const std::unique_ptr<Carnivore>& carn) {
-        return !carn->isAlive();
-    });
-    // Jeśli wszystkie są martwe, emitujemy sygnał zakończenia symulacji
     if (allHerbivoresDead && allCarnivoresDead) {
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        emit simulationEnded(); // Emitowanie sygnału do MainWindow, aby zakończyć symulację
+        emit simulationEnded();
     }
 }
 
@@ -75,7 +86,7 @@ void Reserve::handleReproduction() {
 
     // Rozmnażanie roślinożerców
     for (auto &herb : herbivores) {
-        if (herb->isAlive()) {
+        if (herb && herb->isAlive()) {
             for (auto &otherHerb : herbivores) {
                 if (herb != otherHerb && herb->canReproduce() && otherHerb->canReproduce() &&
                     herb->getX() > otherHerb->getX() - 20 && herb->getX() < otherHerb->getX() + 20 &&
@@ -99,7 +110,7 @@ void Reserve::handleReproduction() {
 
     // Rozmnażanie drapieżników
     for (auto &carn : carnivores) {
-        if (carn->isAlive()) {
+        if (carn && carn->isAlive()) {
             for (auto &otherCarn : carnivores) {
                 if (carn != otherCarn && carn->canReproduce() && otherCarn->canReproduce() &&
                     carn->getX() > otherCarn->getX() - 20 && carn->getX() < otherCarn->getX() + 20 &&
@@ -128,21 +139,21 @@ void Reserve::handleReproduction() {
 // Obsługa interakcji między organizmami
 void Reserve::handleInteractions() {
     for (auto &herb : herbivores) {
-        if (herb->isAlive()) {
+        if (herb && herb->isAlive()) {
             herb->interact(this);
             herb->updateEnergy();
         }
     }
 
     for (auto &carn : carnivores) {
-        if (carn->isAlive()) {
+        if (carn && carn->isAlive()) {
             carn->interact(this);
             carn->updateEnergy();
         }
     }
 
     for (auto &plant : plants) {
-        if (plant->isAlive()) {
+        if (plant && plant->isAlive()) {
             plant->updateEnergy();
         }
     }
@@ -215,5 +226,9 @@ int Reserve::getWidth() const {
 int Reserve::getHeight() const {
     return height;
 }
-
+void Reserve::clearAllOrganisms() {
+    herbivores.clear();
+    carnivores.clear();
+    plants.clear();
+}
 Reserve::~Reserve(){}

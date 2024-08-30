@@ -18,9 +18,15 @@ struct SimulationStats {
     int birthsCarnivores = 0;
     int deathsHerbivores = 0;
     int deathsCarnivores = 0;
+
     int plantsEaten = 0;
     int herbivoresPoisoned=0;
     int herbivoresEaten = 0;
+
+    double averageLifeSpanHerbivores = 0.0;
+    double averageLifeSpanCarnivores = 0.0;
+    double averageEnergyHerbivores = 0.0;
+    double averageEnergyCarnivores = 0.0;
 };
 
 // Klasa Reserve reprezentuje rezerwat, w którym odbywa się symulacja
@@ -56,6 +62,7 @@ public:
     void addCarnivore(std::unique_ptr<Carnivore> carnivore);
     void addPlant(std::unique_ptr<Plant> plant);
 
+    void clearAllOrganisms();
 
 signals:
         void simulationEnded();  // Sygnał emitowany, gdy symulacja się kończy

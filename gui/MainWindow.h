@@ -13,6 +13,13 @@
 #include <unordered_map>
 #include "SimulationController.h"
 #include <QElapsedTimer>
+#include <QtCharts>
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
+
+QT_CHARTS_USE_NAMESPACE
+
 
 class MainWindow : public QMainWindow {
 Q_OBJECT
@@ -28,19 +35,27 @@ private slots:
     void onShowStatsButtonClicked();
     void onRestartButtonClicked();
     void onAddOrganismsClicked();
-  //  void removeOrganismFromScene(Organism* organism);
     void onSimulationStepCompleted();
 
 private:
     void updateScene();
     void updateCounts();
     void keyPressEvent(QKeyEvent *event);
+    void initializeSimulationController();
+
+    void updateUIForSimulationRunning();
+    void resetUIForNewSimulation();
+    void updateUIForSimulationEnded();
+    void initializeAxisRange();
+    void initializeChart();
+    void adjustAxisRange();
 
     bool isPaused;
     bool simulationEnded;
     bool isRestarting;
 
-    SimulationController *simulationController;
+
+    std::unique_ptr<SimulationController> simulationController;
     QGraphicsView *view;
     QGraphicsScene *scene;
     QMutex mutex;
@@ -74,6 +89,15 @@ private:
     QElapsedTimer simulationTimer;
     qint64 simulationDuration;
 
+    QtCharts::QLineSeries *herbivoreSeries;
+    QtCharts::QLineSeries *carnivoreSeries;
+    QtCharts::QLineSeries *plantSeries;
+
+    QChart *chart;
+    QValueAxis *axisX;
+    QValueAxis *axisY;
+
+    QChartView* chartView;
 };
 
 #endif //ECOSYSTEM_MAINWINDOW_H

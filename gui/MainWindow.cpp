@@ -11,13 +11,24 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QCoreApplication>
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
+
+using namespace QtCharts;
+
 
 MainWindow::MainWindow(QWidget *parent)
-        : QMainWindow(parent), simulationController(nullptr), isPaused(false), simulationDuration(0), simulationEnded(false), isRestarting(false) {
+        : QMainWindow(parent),  isPaused(false), simulationDuration(0), simulationEnded(false), isRestarting(false) {
 
+    // Central widget, layout
     QWidget *centralWidget = new QWidget(this);
-    QVBoxLayout *layout = new QVBoxLayout(centralWidget);
+   // QVBoxLayout *layout = new QVBoxLayout(centralWidget);
+    QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
 
+    QVBoxLayout *leftLayout = new QVBoxLayout();
+
+    // Elementy UI
     startButton = new QPushButton("Start Simulation", this);
     stopButton = new QPushButton("Stop Simulation", this);
     showStatsButton = new QPushButton("Show Statistics", this);
@@ -37,32 +48,34 @@ MainWindow::MainWindow(QWidget *parent)
     carnivoreLabel = new QLabel("Carnivores:", this);
     plantLabel = new QLabel("Plants:", this);
 
-    layout->addWidget(herbivoreLabel);
-    layout->addWidget(herbivoreInput);
-    layout->addWidget(carnivoreLabel);
-    layout->addWidget(carnivoreInput);
-    layout->addWidget(plantLabel);
-    layout->addWidget(plantInput);
+    leftLayout->addWidget(herbivoreLabel);
+    leftLayout->addWidget(herbivoreInput);
+    leftLayout->addWidget(carnivoreLabel);
+    leftLayout->addWidget(carnivoreInput);
+    leftLayout->addWidget(plantLabel);
+    leftLayout->addWidget(plantInput);
 
     herbivoreCountLabel = new QLabel("Herbivores: 0", this);
     carnivoreCountLabel = new QLabel("Carnivores: 0", this);
     plantCountLabel = new QLabel("Plants: 0", this);
 
-    layout->addWidget(herbivoreCountLabel);
-    layout->addWidget(carnivoreCountLabel);
-    layout->addWidget(plantCountLabel);
+    leftLayout->addWidget(herbivoreCountLabel);
+    leftLayout->addWidget(carnivoreCountLabel);
+    leftLayout->addWidget(plantCountLabel);
     herbivoreCountLabel->setVisible(false);
     carnivoreCountLabel->setVisible(false);
     plantCountLabel->setVisible(false);
 
-    layout->addWidget(startButton);
-    layout->addWidget(stopButton);
-    layout->addWidget(showStatsButton);
-    layout->addWidget(restartButton);
+    leftLayout->addWidget(startButton);
+    leftLayout->addWidget(stopButton);
+    leftLayout->addWidget(showStatsButton);
+    leftLayout->addWidget(restartButton);
+
 
     showStatsButton->setVisible(false);
     restartButton->setVisible(false);
 
+    // Dodawanie organizmów w trakcie symulacji
     newHerbivoresInput = new QSpinBox(this);
     newHerbivoresInput->setRange(0, 100);
     newHerbivoresInput->setValue(0);
@@ -81,13 +94,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     addOrganismsButton = new QPushButton("Add Organisms", this);
 
-    layout->addWidget(newHerbivoreLabel);
-    layout->addWidget(newHerbivoresInput);
-    layout->addWidget(newCarnivoreLabel);
-    layout->addWidget(newCarnivoresInput);
-    layout->addWidget(newPlantsLabel);
-    layout->addWidget(newPlantsInput);
-    layout->addWidget(addOrganismsButton);
+    leftLayout->addWidget(newHerbivoreLabel);
+    leftLayout->addWidget(newHerbivoresInput);
+    leftLayout->addWidget(newCarnivoreLabel);
+    leftLayout->addWidget(newCarnivoresInput);
+    leftLayout->addWidget(newPlantsLabel);
+    leftLayout->addWidget(newPlantsInput);
+    leftLayout->addWidget(addOrganismsButton);
     newHerbivoresInput->setVisible(false);
     newCarnivoresInput->setVisible(false);
     newPlantsInput->setVisible(false);
@@ -96,14 +109,22 @@ MainWindow::MainWindow(QWidget *parent)
     newPlantsLabel->setVisible(false);
     addOrganismsButton->setVisible(false);
 
+    // scena, widok
     scene = new QGraphicsScene(this);
     view = new QGraphicsView(scene, this);
     scene->setBackgroundBrush(Qt::darkGreen);
-    layout->addWidget(view);
+    leftLayout->addWidget(view);
+
+    initializeChart();
+
+    mainLayout->addLayout(leftLayout, 2);
+    mainLayout->addWidget(chartView, 1);
 
     setCentralWidget(centralWidget);
 
-    simulationController = new SimulationController(700, 450, 0, 0, 0);
+    initializeSimulationController();
+
+    initializeAxisRange();
 
     connect(startButton, &QPushButton::clicked, this, &MainWindow::onStartSimulation);
     connect(stopButton, &QPushButton::clicked, this, &MainWindow::onStopSimulation);
@@ -111,16 +132,22 @@ MainWindow::MainWindow(QWidget *parent)
     connect(restartButton, &QPushButton::clicked, this, &MainWindow::onRestartButtonClicked);
     connect(addOrganismsButton, &QPushButton::clicked, this, &MainWindow::onAddOrganismsClicked);
 
-
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::onSimulationStepCompleted);
-    connect(simulationController->getReserve().get(), &Reserve::simulationEnded, this, &MainWindow::onSimulationEnded);
 
-    scene->setSceneRect(0, 0, 800, 700);
+    if (auto reserve = simulationController->getReserve()) {
+        connect(reserve.get(), &Reserve::simulationEnded, this, &MainWindow::onSimulationEnded);
+    }
+
+
+    scene->setSceneRect(0, 0, 1000, 800);
 }
+void MainWindow::initializeSimulationController() {
+    int numHerbivores = herbivoreInput->value();
+    int numCarnivores = carnivoreInput->value();
+    int numPlants = plantInput->value();
 
-MainWindow::~MainWindow() {
-    delete simulationController;
+    simulationController = std::make_unique<SimulationController>(800, 700, numHerbivores, numCarnivores, numPlants);
 }
 
 void MainWindow::onAddOrganismsClicked() {
@@ -138,91 +165,291 @@ void MainWindow::onAddOrganismsClicked() {
 }
 
 void MainWindow::onStartSimulation() {
-    qDebug() << "on start simulation";
-    // Zatrzymanie symulacji, jeśli jest aktywna
     if (timer->isActive()) {
         timer->stop();
     }
-
-    // Jeśli była wciśnięta pauza
-    if (isPaused) {
-        timer->start(1000);
-        isPaused = false;
-        startButton->setVisible(false);
-        stopButton->setVisible(true);
-
-        newHerbivoresInput->setVisible(false);
-        newCarnivoresInput->setVisible(false);
-        newPlantsInput->setVisible(false);
-        newHerbivoreLabel->setVisible(false);
-        newCarnivoreLabel->setVisible(false);
-        newPlantsLabel->setVisible(false);
-        addOrganismsButton->setVisible(false);
-
-        plantLabel->setVisible(false);
-        herbivoreLabel->setVisible(false);
-        carnivoreLabel->setVisible(false);
-
-        herbivoreCountLabel->setVisible(true);
-        carnivoreCountLabel->setVisible(true);
-        plantCountLabel->setVisible(true);
-
-        return;
-    }
-    if(isRestarting) {
-        isRestarting = false;
-        timer->start(1000);
-        isPaused = false;
-
-
-        startButton->setVisible(false);
-        stopButton->setVisible(true);
-
-        newHerbivoresInput->setVisible(false);
-        newCarnivoresInput->setVisible(false);
-        newPlantsInput->setVisible(false);
-        newHerbivoreLabel->setVisible(false);
-        newCarnivoreLabel->setVisible(false);
-        newPlantsLabel->setVisible(false);
-        addOrganismsButton->setVisible(false);
-
-        plantInput->setVisible(false);
-        herbivoreInput->setVisible(false);
-        carnivoreInput->setVisible(false);
-        plantLabel->setVisible(false);
-        herbivoreLabel->setVisible(false);
-        carnivoreLabel->setVisible(false);
-
-        herbivoreCountLabel->setVisible(true);
-        carnivoreCountLabel->setVisible(true);
-        plantCountLabel->setVisible(true);
-    }
-
-
-    isPaused = false;
-    startButton->setVisible(false);
-    // Czyszczenie sceny i usuwanie wszystkich organizmów
-    scene->clear();
-    organismItems.clear();
 
     int numHerbivores = herbivoreInput->value();
     int numCarnivores = carnivoreInput->value();
     int numPlants = plantInput->value();
 
-    
-    delete simulationController;
-    simulationController = new SimulationController(700, 450, numHerbivores, numCarnivores, numPlants);
 
-    simulationTimer.restart();
+    if (isRestarting) {
+        isRestarting = false;
+        isPaused = false;
 
-    // Uruchomienie timera do symulacji
-    if (!timer->isActive()) {
+        simulationController = std::make_unique<SimulationController>(700, 450, numHerbivores, numCarnivores, numPlants);
+        simulationTimer.restart();
+        updateUIForSimulationRunning();
+
         timer->start(1000);
+        updateScene();
+        updateCounts();
+        return;
     }
 
-    stopButton->setText("Pause");
-    startButton->setText("Resume");
+    if (isPaused) {
+        isPaused = false;
+        updateUIForSimulationRunning();
+        timer->start(1000);
+        return;
+    }
 
+    simulationController = std::make_unique<SimulationController>(700, 450, numHerbivores, numCarnivores, numPlants);
+    simulationTimer.restart();
+    updateUIForSimulationRunning();
+    timer->start(1000);
+    updateScene();
+    updateCounts();
+}
+
+
+
+void MainWindow::onRestartButtonClicked() {
+    if (timer->isActive()) {
+        timer->stop();
+    }
+
+    isRestarting = true;
+    simulationEnded = false;
+    isPaused = false;
+
+    scene->clear();
+    organismItems.clear();
+
+    simulationController->getReserve()->clearAllOrganisms();
+    simulationTimer.restart();
+
+    herbivoreInput->setValue(0);
+    carnivoreInput->setValue(0);
+    plantInput->setValue(0);
+
+    herbivoreInput->setEnabled(true);
+    carnivoreInput->setEnabled(true);
+    plantInput->setEnabled(true);
+
+    resetUIForNewSimulation();
+
+    herbivoreSeries->clear();
+    carnivoreSeries->clear();
+    plantSeries->clear();
+
+
+    int numHerbivores = herbivoreInput->value();
+    int numCarnivores = carnivoreInput->value();
+    int numPlants = plantInput->value();
+
+    simulationController = std::make_unique<SimulationController>(700, 450, numHerbivores, numCarnivores, numPlants);
+
+
+    if (auto reserve = simulationController->getReserve()) {
+        QObject::disconnect(reserve.get(), &Reserve::simulationEnded, this, &MainWindow::onSimulationEnded);
+        connect(reserve.get(), &Reserve::simulationEnded, this, &MainWindow::onSimulationEnded, Qt::UniqueConnection);
+    }
+
+    updateScene();
+    updateCounts();
+
+    startButton->setVisible(true);
+    stopButton->setVisible(false);
+}
+
+
+void MainWindow::onStopSimulation() {
+    if (!isPaused) {
+        timer->stop();
+        isPaused = true;
+
+        startButton->setText("Resume");
+        startButton->setVisible(true);
+        stopButton->setVisible(false);
+
+        newHerbivoresInput->setVisible(true);
+        newCarnivoresInput->setVisible(true);
+        newPlantsInput->setVisible(true);
+        addOrganismsButton->setVisible(true);
+
+        newHerbivoreLabel->setVisible(true);
+        newCarnivoreLabel->setVisible(true);
+        newPlantsLabel->setVisible(true);
+    } else {
+        onStartSimulation();
+    }
+}
+
+void MainWindow::onSimulationEnded() {
+    if (simulationEnded) return;
+    simulationEnded = true;
+
+    if (timer->isActive()) {
+        timer->stop();
+    }
+
+
+    simulationDuration = simulationTimer.elapsed() / 1000;
+    QMessageBox::information(this, "Simulation Ended", "All herbivores and carnivores are dead. The simulation has ended.");
+
+    updateUIForSimulationEnded();
+
+
+    showStatsButton->setVisible(true);
+    restartButton->setVisible(true);
+    startButton->setVisible(false);
+    stopButton->setVisible(false);
+}
+
+
+
+
+void MainWindow::onSimulationStepCompleted() {
+    if (simulationController) {
+        simulationController->simulateStep();
+    }
+
+    updateScene();
+    updateCounts();
+
+    int step = simulationTimer.elapsed() / 1000;
+
+    if (simulationController && simulationController->getReserve()) {
+        herbivoreSeries->append(step, simulationController->getReserve()->getHerbivores().size());
+        carnivoreSeries->append(step, simulationController->getReserve()->getCarnivores().size());
+        plantSeries->append(step, simulationController->getReserve()->getPlants().size());
+    }
+    adjustAxisRange();
+    chart->update();
+
+    if (simulationController->getReserve()->getHerbivores().empty() &&
+        simulationController->getReserve()->getCarnivores().empty()) {
+        onSimulationEnded();
+    }
+}
+
+void MainWindow::updateScene() {
+    auto reserve = simulationController->getReserve();
+
+    if (!reserve) {
+        return;
+    }
+
+    scene->clear();
+    organismItems.clear();
+
+    static QPixmap plantPixmap(":/gui/img/flower.png");
+    static QPixmap poisonousPlantPixmap(":/gui/img/poisonous.png");
+    static QPixmap herbivorePixmap(":/gui/img/deer.png");
+    static QPixmap carnivorePixmap(":/gui/img/wolf.png");
+
+    int organismSize = 30;
+
+    // Usunięcie martwych organizmów
+    for (auto it = organismItems.begin(); it != organismItems.end();) {
+        if (it->first && !it->first->isAlive()) {
+            scene->removeItem(it->second);
+            delete it->second;
+            it = organismItems.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    auto updateOrAddOrganism = [&](auto& organisms, QPixmap& pixmap) {
+        for (const auto& organism : organisms) {
+            if (organism && organism->isAlive()) {
+                auto it = organismItems.find(organism.get());
+                if (it != organismItems.end()) {
+                    // Aktualizacja położenia
+                    if (it->second->pos() != QPointF(organism->getX(), organism->getY())) {
+                        it->second->setPos(organism->getX(), organism->getY());
+                    }
+                } else {
+                    // Dodanie organizmów
+                    auto organismItem = new InteractiveOrganism(pixmap, organism.get(), organismSize, organismSize);
+                    organismItems[organism.get()] = organismItem;
+                    scene->addItem(organismItem);
+                }
+            }
+        }
+    };
+
+    updateOrAddOrganism(reserve->getHerbivores(), herbivorePixmap);
+    updateOrAddOrganism(reserve->getCarnivores(), carnivorePixmap);
+
+    for (const auto& plant : reserve->getPlants()) {
+        QPixmap& pixmap = dynamic_cast<PoisonousPlant*>(plant.get()) ? poisonousPlantPixmap : plantPixmap;
+
+        if (plant && plant->isAlive()) {
+            auto it = organismItems.find(plant.get());
+            if (it != organismItems.end()) {
+                // Aktualizacja położenia
+                if (it->second->pos() != QPointF(plant->getX(), plant->getY())) {
+                    it->second->setPos(plant->getX(), plant->getY());
+                }
+            } else {
+                // Dodanie nowej rośliny
+                auto plantItem = new InteractiveOrganism(pixmap, plant.get(), organismSize, organismSize);
+                organismItems[plant.get()] = plantItem;
+                scene->addItem(plantItem);
+            }
+        }
+    }
+}
+
+void MainWindow::updateCounts() {
+    int herbivoreCount = simulationController->getReserve()->getHerbivores().size();
+    int carnivoreCount = simulationController->getReserve()->getCarnivores().size();
+    int plantCount = simulationController->getReserve()->getPlants().size();
+
+    herbivoreCountLabel->setText(QString("Herbivores: %1").arg(herbivoreCount));
+    carnivoreCountLabel->setText(QString("Carnivores: %1").arg(carnivoreCount));
+    plantCountLabel->setText(QString("Plants: %1").arg(plantCount));
+}
+void MainWindow::onShowStatsButtonClicked() {
+    // Pobranie statystyk symulacji z kontrolera
+    SimulationStats stats = simulationController->getReserve()->getStats();
+
+    // Tworzenie wiadomości ze statystykami
+    QString statsMessage = QString("Simulation Duration: %1 seconds\n").arg(simulationDuration);
+    statsMessage += QString(
+            "Herbivores born: %1\n"
+            "Carnivores born: %2\n"
+            "Herbivores died: %3\n"
+            "Carnivores died: %4\n"
+            "Plants eaten: %5\n"
+            "Herbivores eaten by carnivores: %6\n"
+            "Herbivores poisoned by plants: %7\n"
+            "Average lifespan of herbivores: %8\n"
+            "Average lifespan of carnivores: %9\n"
+            "Average energy of herbivores: %10\n"
+            "Average energy of carnivores: %11")
+            .arg(stats.birthsHerbivores)
+            .arg(stats.birthsCarnivores)
+            .arg(stats.deathsHerbivores)
+            .arg(stats.deathsCarnivores)
+            .arg(stats.plantsEaten)
+            .arg(stats.herbivoresEaten)
+            .arg(stats.herbivoresPoisoned)
+            .arg(stats.averageLifeSpanHerbivores)
+            .arg(stats.averageLifeSpanCarnivores)
+            .arg(stats.averageEnergyHerbivores)
+            .arg(stats.averageEnergyCarnivores);
+
+    QMessageBox::information(this, "Simulation Stats", statsMessage);
+
+
+
+}
+
+
+void MainWindow::keyPressEvent(QKeyEvent* event) {
+    if (event->key() == Qt::Key_P) {
+        onStopSimulation();
+    } else if (event->key() == Qt::Key_R) {
+        onStartSimulation();
+    }
+}
+
+void MainWindow::updateUIForSimulationRunning() {
     herbivoreInput->setVisible(false);
     carnivoreInput->setVisible(false);
     plantInput->setVisible(false);
@@ -245,25 +472,13 @@ void MainWindow::onStartSimulation() {
     newHerbivoreLabel->setVisible(false);
     newCarnivoreLabel->setVisible(false);
     newPlantsLabel->setVisible(false);
+
+    startButton->setVisible(false);
+    stopButton->setVisible(true);
+    stopButton->setText("Stop Simulation");
 }
-void MainWindow::onRestartButtonClicked() {
-    // Zatrzymanie symulacji, jeśli jest aktywna
-    if (timer->isActive()) {
-        timer->stop();
-    }
-    qDebug() << "on restart button clicked";
-    isRestarting = true;
-    simulationEnded = false;
-    isPaused = false;
 
-    // Resetowanie GUI
-    scene->clear();
-    organismItems.clear();
-    simulationTimer.restart();
-
-    showStatsButton->setVisible(false);
-    restartButton->setVisible(false);
-
+void MainWindow::resetUIForNewSimulation() {
     herbivoreInput->setVisible(true);
     carnivoreInput->setVisible(true);
     plantInput->setVisible(true);
@@ -271,9 +486,14 @@ void MainWindow::onRestartButtonClicked() {
     carnivoreLabel->setVisible(true);
     plantLabel->setVisible(true);
 
+    herbivoreInput->setEnabled(true);
+    carnivoreInput->setEnabled(true);
+    plantInput->setEnabled(true);
+
     herbivoreCountLabel->setVisible(false);
     carnivoreCountLabel->setVisible(false);
     plantCountLabel->setVisible(false);
+
     newHerbivoresInput->setVisible(false);
     newCarnivoresInput->setVisible(false);
     newPlantsInput->setVisible(false);
@@ -283,59 +503,13 @@ void MainWindow::onRestartButtonClicked() {
     addOrganismsButton->setVisible(false);
 
     startButton->setVisible(true);
-    stopButton->setVisible(true);
-
-    // Inicjalizacja nowej symulacji z nowymi parametrami
-    int numHerbivores = herbivoreInput->value();
-    int numCarnivores = carnivoreInput->value();
-    int numPlants = plantInput->value();
-
-    delete simulationController;  // Usunięcie starego kontrolera
-    simulationController = new SimulationController(700, 450, numHerbivores, numCarnivores, numPlants);
-    connect(simulationController->getReserve().get(), &Reserve::simulationEnded, this, &MainWindow::onSimulationEnded);
-
-    // Aktualizacja sceny i liczników
-    updateScene();
-    updateCounts();
-}
-
-void MainWindow::onStopSimulation() {
-    if (!isPaused) {
-            timer->stop();
-            isPaused = true;
-
-    } else {
-        onStartSimulation();
-    }
-
-    herbivoreInput->setVisible(false);
-    carnivoreInput->setVisible(false);
-    plantInput->setVisible(false);
-
+    startButton->setText("Start Simulation");
     stopButton->setVisible(false);
-
-    if(!simulationEnded) {
-        startButton->setVisible(true);
-        newHerbivoresInput->setVisible(true);
-        newCarnivoresInput->setVisible(true);
-        newPlantsInput->setVisible(true);
-        addOrganismsButton->setVisible(true);
-
-        newHerbivoreLabel->setVisible(true);
-        newCarnivoreLabel->setVisible(true);
-        newPlantsLabel->setVisible(true);
-    }
-
+    showStatsButton->setVisible(false);
+    restartButton->setVisible(false);
 }
 
-void MainWindow::onSimulationEnded() {
-    simulationEnded = true;
-    onStopSimulation();
-
-    simulationDuration = simulationTimer.elapsed() / 1000;  // Czas w sekundach
-
-    QMessageBox::information(this, "Simulation Ended", "All herbivores and carnivores are dead. The simulation has ended.");
-
+void MainWindow::updateUIForSimulationEnded() {
     newHerbivoresInput->setVisible(false);
     newCarnivoresInput->setVisible(false);
     newPlantsInput->setVisible(false);
@@ -344,134 +518,114 @@ void MainWindow::onSimulationEnded() {
     newPlantsLabel->setVisible(false);
     addOrganismsButton->setVisible(false);
 
-    showStatsButton->setVisible(true);
-    restartButton->setVisible(true);
+    herbivoreCountLabel->setVisible(true);
+    carnivoreCountLabel->setVisible(true);
+    plantCountLabel->setVisible(true);
+
     startButton->setVisible(false);
     stopButton->setVisible(false);
 }
+void MainWindow::initializeAxisRange() {
+    int maxX = 5; // Start with a reasonable default range
+    int maxY = 5; // Start with a reasonable default range
 
-void MainWindow::onSimulationStepCompleted() {
-    simulationController->simulateStep();
-    updateScene();
-    updateCounts();
-    if (simulationController->getReserve()->getHerbivores().empty() &&
-        simulationController->getReserve()->getCarnivores().empty()) {
-
-        onSimulationEnded();
+    if (!herbivoreSeries->points().isEmpty()) {
+        maxX = std::max(maxX, static_cast<int>(herbivoreSeries->points().last().x()));
+        maxY = std::max(maxY, static_cast<int>(herbivoreSeries->points().last().y()));
     }
+    if (!carnivoreSeries->points().isEmpty()) {
+        maxX = std::max(maxX, static_cast<int>(carnivoreSeries->points().last().x()));
+        maxY = std::max(maxY, static_cast<int>(carnivoreSeries->points().last().y()));
+    }
+    if (!plantSeries->points().isEmpty()) {
+        maxX = std::max(maxX, static_cast<int>(plantSeries->points().last().x()));
+        maxY = std::max(maxY, static_cast<int>(plantSeries->points().last().y()));
+    }
+
+    axisX->setRange(0, maxX);
+    axisY->setRange(0, maxY);
 }
+void MainWindow::initializeChart() {
+    // Inicjalizacja wykresów
+    herbivoreSeries = new QLineSeries(this);
+    carnivoreSeries = new QLineSeries(this);
+    plantSeries = new QLineSeries(this);
 
-void MainWindow::updateScene() {
-    auto reserve = simulationController->getReserve();
+    herbivoreSeries->setName("Herbivores");
+    carnivoreSeries->setName("Carnivores");
+    plantSeries->setName("Plants");
 
-    // Usuwanie nieżyjących organizmów ze sceny
-    for (auto it = organismItems.begin(); it != organismItems.end();) {
-        if (!it->first->isAlive()) {
-            scene->removeItem(it->second);
-            delete it->second;
-            it = organismItems.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    chart = new QChart();
 
-    // Aktualizacja pozycji i dodawanie nowych organizmów na scenę
-    QPixmap plantPixmap(":/gui/img/flower.png");
-    QPixmap poisonousPlantPixmap(":/gui/img/poisonous.png");
-    QPixmap herbivorePixmap(":/gui/img/deer.png");
-    QPixmap carnivorePixmap(":/gui/img/wolf.png");
+    axisX = new QValueAxis(this);
+    axisX->setLabelFormat("%i");
+    axisX->setTitleText("Simulation Step");
 
-    int organismSize = 30; // Rozmiar obrazu organizmów
+    axisY = new QValueAxis(this);
+    axisY->setLabelFormat("%i");
+    axisY->setTitleText("Number of Organisms");
 
-    for (const auto &plant : reserve->getPlants()) {
-        if (plant->isAlive()) {
-            if (organismItems.count(plant.get())) {
-                // Aktualizacja pozycji istniejącego organizmu
-                if (organismItems[plant.get()]->pos() != QPointF(plant->getX(), plant->getY())) {
-                    organismItems[plant.get()]->setPos(plant->getX(), plant->getY());
-                }
-            } else {
-                // Dodanie nowego organizmu do sceny
-                QPixmap *currentPixmap = plant->isPoisonous() ? &poisonousPlantPixmap : &plantPixmap;
-                auto plantItem = new InteractiveOrganism(*currentPixmap, plant.get(), organismSize, organismSize);
-                organismItems[plant.get()] = plantItem;
-                scene->addItem(plantItem);
-            }
-        }
-    }
 
-    for (const auto &herb : reserve->getHerbivores()) {
-        if (herb->isAlive()) {
-            if (organismItems.count(herb.get())) {
-                if (organismItems[herb.get()]->pos() != QPointF(herb->getX(), herb->getY())) {
-                    organismItems[herb.get()]->setPos(herb->getX(), herb->getY());
-                }
-            } else {
-                auto herbivoreItem = new InteractiveOrganism(herbivorePixmap, herb.get(), organismSize, organismSize);
-                organismItems[herb.get()] = herbivoreItem;
-                scene->addItem(herbivoreItem);
-            }
-        }
-    }
+    QFont axisTitleFont = axisX->titleFont();
+    axisTitleFont.setPointSize(12); // Set font size for titles
+    axisX->setTitleFont(axisTitleFont);
+    axisY->setTitleFont(axisTitleFont);
 
-    for (const auto &carn : reserve->getCarnivores()) {
-        if (carn->isAlive()) {
-            if (organismItems.count(carn.get())) {
-                if (organismItems[carn.get()]->pos() != QPointF(carn->getX(), carn->getY())) {
-                    organismItems[carn.get()]->setPos(carn->getX(), carn->getY());
-                }
-            } else {
-                auto carnivoreItem = new InteractiveOrganism(carnivorePixmap, carn.get(), organismSize, organismSize);
-                organismItems[carn.get()] = carnivoreItem;
-                scene->addItem(carnivoreItem);
-            }
-        }
-    }
+    // Set font for axis labels
+    QFont axisLabelFont = axisX->labelsFont();
+    axisLabelFont.setPointSize(10); // Set font size for labels
+    axisX->setLabelsFont(axisLabelFont);
+    axisY->setLabelsFont(axisLabelFont);
+
+
+
+    // Dodanie osi do wykresu
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    // Dodanie serii do wykresu
+    chart->addSeries(herbivoreSeries);
+    chart->addSeries(carnivoreSeries);
+    chart->addSeries(plantSeries);
+
+    // Przyłączenie serii do osi
+    herbivoreSeries->attachAxis(axisX);
+    herbivoreSeries->attachAxis(axisY);
+    carnivoreSeries->attachAxis(axisX);
+    carnivoreSeries->attachAxis(axisY);
+    plantSeries->attachAxis(axisX);
+    plantSeries->attachAxis(axisY);
+
+    chartView = new QChartView(chart, this);
+    layout()->addWidget(chartView);
+
+    chartView->setVisible(true); // Make chart view visible from the beginning
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
+void MainWindow::adjustAxisRange() {
+    // Calculate the dynamic ranges for the axes based on the current data
+    int maxX = 5;
+    int maxY = 5;
 
-
-void MainWindow::updateCounts() {
-    int herbivoreCount = simulationController->getReserve()->getHerbivores().size();
-    int carnivoreCount = simulationController->getReserve()->getCarnivores().size();
-    int plantCount = simulationController->getReserve()->getPlants().size();
-
-    herbivoreCountLabel->setText(QString("Herbivores: %1").arg(herbivoreCount));
-    carnivoreCountLabel->setText(QString("Carnivores: %1").arg(carnivoreCount));
-    plantCountLabel->setText(QString("Plants: %1").arg(plantCount));
-}
-
-void MainWindow::onShowStatsButtonClicked() {
-    // Pobranie statystyk symulacji z kontrolera
-    SimulationStats stats = simulationController->getReserve()->getStats();
-
-    // Tworzenie wiadomości ze statystykami
-    QString statsMessage = QString("Simulation Duration: %1 seconds\n").arg(simulationDuration);
-    statsMessage += QString(
-                                   "Herbivores born: %1\n"
-                                   "Carnivores born: %2\n"
-                                   "Herbivores died: %3\n"
-                                   "Carnivores died: %4\n"
-                                   "Plants eaten: %5\n"
-                                   "Herbivores eaten by carnivores: %6\n"
-                                   "Herbivores poisoned by plants: %7")
-            .arg(stats.birthsHerbivores)
-            .arg(stats.birthsCarnivores)
-            .arg(stats.deathsHerbivores)
-            .arg(stats.deathsCarnivores)
-            .arg(stats.plantsEaten)
-            .arg(stats.herbivoresEaten)
-            .arg(stats.herbivoresPoisoned);
-
-    QMessageBox::information(this, "Simulation Stats", statsMessage);
-}
-
-
-
-void MainWindow::keyPressEvent(QKeyEvent* event) {
-    if (event->key() == Qt::Key_P) {
-        onStopSimulation();
-    } else if (event->key() == Qt::Key_R) {
-        onStartSimulation();
+    if (!herbivoreSeries->points().isEmpty()) {
+        maxX = std::max(maxX, static_cast<int>(herbivoreSeries->points().last().x())) + 5;
+        maxY = std::max(maxY, static_cast<int>(herbivoreSeries->points().last().y())) + 5;
     }
+    if (!carnivoreSeries->points().isEmpty()) {
+        maxX = std::max(maxX, static_cast<int>(carnivoreSeries->points().last().x())) + 5;
+        maxY = std::max(maxY, static_cast<int>(carnivoreSeries->points().last().y())) + 5;
+    }
+    if (!plantSeries->points().isEmpty()) {
+        maxX = std::max(maxX, static_cast<int>(plantSeries->points().last().x())) + 5;
+        maxY = std::max(maxY, static_cast<int>(plantSeries->points().last().y())) + 5;
+    }
+
+    axisX->setRange(0, maxX);
+    axisY->setRange(0, maxY);
+}
+MainWindow::~MainWindow() {
+    timer->stop();
+    delete timer;
 }
 

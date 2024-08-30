@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>gui/img/flower.png</file>
-        <file>gui/img/deer.png</file>
-        <file>gui/img/wolf.png</file>
-        <file>gui/img/poisonous.png</file>
-    </qresource>
-</RCC>
