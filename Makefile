@@ -467,6 +467,30 @@ src/Reserve.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Reserve.cpp.s
 .PHONY : src/Reserve.cpp.s
 
+src/Scavenger.o: src/Scavenger.cpp.o
+.PHONY : src/Scavenger.o
+
+# target to build an object file
+src/Scavenger.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Scavenger.cpp.o
+.PHONY : src/Scavenger.cpp.o
+
+src/Scavenger.i: src/Scavenger.cpp.i
+.PHONY : src/Scavenger.i
+
+# target to preprocess a source file
+src/Scavenger.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Scavenger.cpp.i
+.PHONY : src/Scavenger.cpp.i
+
+src/Scavenger.s: src/Scavenger.cpp.s
+.PHONY : src/Scavenger.s
+
+# target to generate assembly for a file
+src/Scavenger.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Scavenger.cpp.s
+.PHONY : src/Scavenger.cpp.s
+
 src/SimulationController.o: src/SimulationController.cpp.o
 .PHONY : src/SimulationController.o
 
@@ -589,6 +613,9 @@ help:
 	@echo "... src/Reserve.o"
 	@echo "... src/Reserve.i"
 	@echo "... src/Reserve.s"
+	@echo "... src/Scavenger.o"
+	@echo "... src/Scavenger.i"
+	@echo "... src/Scavenger.s"
 	@echo "... src/SimulationController.o"
 	@echo "... src/SimulationController.i"
 	@echo "... src/SimulationController.s"

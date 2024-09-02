@@ -8,7 +8,7 @@
 #include <chrono>
 
 // Konstruktor klasy Reserve, inicjalizujący rezerwat i dodający organizmy
-Reserve::Reserve(int w, int h, int numHerbivores, int numCarnivores, int numPlants)
+Reserve::Reserve(int w, int h, int numHerbivores, int numCarnivores, int numPlants, int numScavengers)
         : QObject(nullptr), width(w), height(h) {
 
     srand(time(0));
@@ -20,6 +20,11 @@ Reserve::Reserve(int w, int h, int numHerbivores, int numCarnivores, int numPlan
     for (int i = 0; i < numCarnivores; i++) {
         carnivores.push_back(std::make_unique<Carnivore>(rand() % width, rand() % height, width, height));
     }
+
+    for(int i=0; i < numScavengers; i++) {
+        scavengers.push_back(std::make_unique<Scavenger>(rand() % width, rand() % height, width, height));
+    }
+
     // Tworzenie roślin, losowo wybierając między zwykłą a trującą
     for (int i = 0; i < numPlants; i++) {
         if (rand() % 2 == 0) {  // Losowanie między zwykłą rośliną a trującą
@@ -35,13 +40,13 @@ void Reserve::simulateStep() {
     QMutexLocker locker(&mutex);
 
     int energyLossPerStep = 10;
-    int aliveHerbivores = 0, aliveCarnivores = 0;
+    int aliveHerbivores = 0, aliveCarnivores = 0, aliveScavengers = 0;
     double totalAgeHerbivores = 0, totalEnergyHerbivores = 0;
     double totalAgeCarnivores = 0, totalEnergyCarnivores = 0;
 
     // Obsługa ruchu i starzenia się organizmów
     for (auto &herb : herbivores) {
-        if (herb->isAlive()) {
+        if (herb && herb->isAlive()) {
             herb->ageAndConsumeEnergy(energyLossPerStep);
             herb->move(max_organism_move, max_organism_move, width, height);
             aliveHerbivores++;
@@ -51,7 +56,7 @@ void Reserve::simulateStep() {
     }
 
     for (auto &carn : carnivores) {
-        if (carn->isAlive()) {
+        if (carn && carn->isAlive()) {
             carn->ageAndConsumeEnergy(energyLossPerStep);
             carn->move(max_organism_move, max_organism_move, width, height);
             aliveCarnivores++;
@@ -60,19 +65,38 @@ void Reserve::simulateStep() {
         }
     }
 
-    stats.averageLifeSpanHerbivores = aliveHerbivores > 0 ? totalAgeHerbivores / aliveHerbivores : 0;
-    stats.averageEnergyHerbivores = aliveHerbivores > 0 ? totalEnergyHerbivores / aliveHerbivores : 0;
-    stats.averageLifeSpanCarnivores = aliveCarnivores > 0 ? totalAgeCarnivores / aliveCarnivores : 0;
-    stats.averageEnergyCarnivores = aliveCarnivores > 0 ? totalEnergyCarnivores / aliveCarnivores : 0;
+    for (auto &scav : scavengers) {
+        if (scav && scav->isAlive()) {
+            scav->ageAndConsumeEnergy(energyLossPerStep);
+            scav->move(max_organism_move, max_organism_move, width, height);
+            aliveScavengers++;
+        }
+    }
+
+
 
     handleReproduction();
     handleInteractions();
     removeDeadOrganisms();
 
-    bool allHerbivoresDead = (aliveHerbivores == 0);
-    bool allCarnivoresDead = (aliveCarnivores == 0);
+    bool allHerbivoresDeadOrEaten = std::all_of(herbivores.begin(), herbivores.end(), [](const auto& herb) {
+        return herb != nullptr && (!herb->isAlive() || herb->isEatenByScavenger());
+    });
 
-    if (allHerbivoresDead && allCarnivoresDead) {
+    bool allCarnivoresDeadOrEaten = std::all_of(carnivores.begin(), carnivores.end(), [](const auto& carn) {
+        return carn != nullptr && (!carn->isAlive() || carn->isEatenByScavenger());
+    });
+
+    bool allScavengersDeadOrEaten = std::all_of(scavengers.begin(), scavengers.end(), [](const auto& scav) {
+        return scav != nullptr && (!scav->isAlive() || scav->isEatenByScavenger());
+    });
+
+
+    bool noAliveScavengers = aliveScavengers == 0;
+
+    // Sprawdź, czy warunki zakończenia symulacji są spełnione
+    if ((allHerbivoresDeadOrEaten && allCarnivoresDeadOrEaten && allScavengersDeadOrEaten) ||
+        (noAliveScavengers && (aliveHerbivores == 0 && aliveCarnivores == 0))) {
         std::this_thread::sleep_for(std::chrono::seconds(2));
         emit simulationEnded();
     }
@@ -82,7 +106,8 @@ void Reserve::simulateStep() {
 void Reserve::handleReproduction() {
     std::vector<std::unique_ptr<Herbivore>> newHerbivores;
     std::vector<std::unique_ptr<Carnivore>> newCarnivores;
-    std::vector<std::unique_ptr<Plant>> newPlants;
+    std::vector<std::unique_ptr<Scavenger>> newScavengers;
+
 
     // Rozmnażanie roślinożerców
     for (auto &herb : herbivores) {
@@ -133,6 +158,30 @@ void Reserve::handleReproduction() {
                       std::make_move_iterator(newCarnivores.end()));
 
 
+    // Rozmnażanie padlinożerców
+    for (auto &scav : scavengers) {
+        if (scav && scav->isAlive()) {
+            for (auto &otherScav : scavengers) {
+                if (scav != otherScav && scav->canReproduce() && otherScav->canReproduce() &&
+                scav->getX() > otherScav->getX() - 20 && scav->getX() < otherScav->getX() + 20 &&
+                scav->getY() > otherScav->getY() - 20 && scav->getY() < otherScav->getY() + 20) {
+
+                    int newX = (scav->getX() + rand() % max_organism_move - max_organism_move * 2);
+                    int newY = (scav->getY() + rand() % max_organism_move - max_organism_move * 2);
+                    newScavengers.push_back(std::make_unique<Scavenger>(newX, newY, width, height));
+
+                    scav->decreaseEnergy(5);
+                    otherScav->decreaseEnergy(5);
+
+                    stats.birthScavengers++;
+                }
+            }
+        }
+    }
+    scavengers.insert(scavengers.end(),
+                      std::make_move_iterator(newScavengers.begin()),
+                      std::make_move_iterator(newScavengers.end()));
+
 }
 
 
@@ -157,33 +206,45 @@ void Reserve::handleInteractions() {
             plant->updateEnergy();
         }
     }
+    for (auto &scav : scavengers) {
+        if (scav && scav->isAlive()) {
+            scav->interact(this);
+            scav->updateEnergy();
+        }
+    }
 }
 
 
-// Usuwanie martwych organizmów z rezerwatu
 void Reserve::removeDeadOrganisms() {
-    for (auto it = herbivores.begin(); it != herbivores.end(); ) {
-        if (!(*it)->isAlive()) {
-            emit organismDied(it->get()); // Emituje sygnał, że organizm umarł
-            stats.deathsHerbivores++;
-            it = herbivores.erase(it); // Usuwa organizm z wektora
+    for (auto it = herbivores.begin(); it != herbivores.end();) {
+        if (*it && !(*it)->isAlive() && (*it)->isEatenByScavenger()) {
+            emit organismDied(it->get());
+            it = herbivores.erase(it);
         } else {
             ++it;
         }
     }
 
-    for (auto it = carnivores.begin(); it != carnivores.end(); ) {
-        if (!(*it)->isAlive()) {
+    for (auto it = carnivores.begin(); it != carnivores.end();) {
+        if (*it && !(*it)->isAlive() && (*it)->isEatenByScavenger()) {
             emit organismDied(it->get());
-            stats.deathsCarnivores++;
             it = carnivores.erase(it);
         } else {
             ++it;
         }
     }
 
-    for (auto it = plants.begin(); it != plants.end(); ) {
-        if (!(*it)->isAlive()) {
+    for (auto it = scavengers.begin(); it != scavengers.end();) {
+        if (*it && !(*it)->isAlive() && (*it)->isEatenByScavenger()) {
+            emit organismDied(it->get());
+            it = scavengers.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    for (auto it = plants.begin(); it != plants.end();) {
+        if (*it && !(*it)->isAlive()) {
             emit organismDied(it->get());
             it = plants.erase(it);
         } else {
@@ -196,17 +257,27 @@ void Reserve::removeDeadOrganisms() {
 
 // Dodawanie nowych organizmów do rezerwatu
 void Reserve::addHerbivore(std::unique_ptr<Herbivore> herbivore) {
-    herbivores.push_back(std::move(herbivore));
+    if (herbivore) {
+        herbivores.push_back(std::move(herbivore));
+    }
 }
 
 void Reserve::addCarnivore(std::unique_ptr<Carnivore> carnivore) {
-    carnivores.push_back(std::move(carnivore));
+    if (carnivore) {
+        carnivores.push_back(std::move(carnivore));
+    }
 }
 
 void Reserve::addPlant(std::unique_ptr<Plant> plant) {
-    plants.push_back(std::move(plant));
+    if (plant) {
+        plants.push_back(std::move(plant));
+    }
 }
-
+void Reserve::addScavenger(std::unique_ptr<Scavenger> scavenger) {
+    if (scavenger) {
+        scavengers.push_back(std::move(scavenger));
+    }
+}
 
 std::vector<std::unique_ptr<Herbivore>>& Reserve::getHerbivores() {
     return herbivores;
@@ -220,6 +291,10 @@ std::vector<std::unique_ptr<Plant>>& Reserve::getPlants() {
     return plants;
 }
 
+std::vector<std::unique_ptr<Scavenger>>& Reserve::getScavengers() {
+    return scavengers;
+}
+
 int Reserve::getWidth() const {
     return width;
 }
@@ -231,4 +306,5 @@ void Reserve::clearAllOrganisms() {
     carnivores.clear();
     plants.clear();
 }
+
 Reserve::~Reserve(){}

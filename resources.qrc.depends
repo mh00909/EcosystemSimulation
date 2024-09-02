@@ -4,5 +4,10 @@
         <file>gui/img/deer.png</file>
         <file>gui/img/wolf.png</file>
         <file>gui/img/poisonous.png</file>
+        <file>gui/img/hyena.png</file>
+        <file>gui/img/dino.png</file>
+        <file>gui/img/dead_deer.png</file>
+        <file>gui/img/dead_hyena.png</file>
+        <file>gui/img/dead_lion.png</file>
     </qresource>
 </RCC>

@@ -4,7 +4,9 @@
 #include "Reserve.h"
 #include "Plant.h"
 
-
+/*
+ * Klasa symulująca trującą roślinę.
+ */
 class PoisonousPlant : public Plant {
 public:
     PoisonousPlant(int x, int y, int sceneX, int sceneY);

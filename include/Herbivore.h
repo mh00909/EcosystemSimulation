@@ -3,7 +3,9 @@
 
 #include "Organism.h"
 #include "Reserve.h"
-
+/*
+ * Klasa symulująca roślinożercę.
+ */
 class Herbivore : public Organism {
 public:
     Herbivore(int x, int y, int i, int i1);

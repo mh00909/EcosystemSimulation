@@ -6,7 +6,9 @@
 #include "Herbivore.h"
 
 class Herbivore;
-
+/*
+ * Klasa symulująca drapieżnika
+ */
 class Carnivore : public Organism {
 public:
     Carnivore(int x, int y, int i, int i1);

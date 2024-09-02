@@ -3,7 +3,9 @@
 
 #include "Organism.h"
 
-
+/*
+ * Klasa symulująca roślinę.
+ */
 class Plant : public Organism {
 public:
 

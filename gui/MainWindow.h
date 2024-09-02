@@ -64,20 +64,25 @@ private:
     QLabel *herbivoreCountLabel;
     QLabel *carnivoreCountLabel;
     QLabel *plantCountLabel;
+    QLabel *scavengerCountLabel;
     QLabel *newPlantsLabel;
     QLabel *newHerbivoreLabel;
     QLabel *newCarnivoreLabel;
+    QLabel *newScavengerLabel;
 
     QSpinBox *herbivoreInput;
     QSpinBox *carnivoreInput;
     QSpinBox *plantInput;
+    QSpinBox *scavengerInput;
     QSpinBox* newHerbivoresInput;
     QSpinBox* newCarnivoresInput;
     QSpinBox* newPlantsInput;
+    QSpinBox* newScavengersInput;
 
     QLabel *herbivoreLabel;
     QLabel *carnivoreLabel;
     QLabel *plantLabel;
+    QLabel *scavengersLabel;
 
     QPushButton *startButton;
     QPushButton *stopButton;
@@ -92,6 +97,7 @@ private:
     QtCharts::QLineSeries *herbivoreSeries;
     QtCharts::QLineSeries *carnivoreSeries;
     QtCharts::QLineSeries *plantSeries;
+    QtCharts::QLineSeries *scavengerSeries;
 
     QChart *chart;
     QValueAxis *axisX;

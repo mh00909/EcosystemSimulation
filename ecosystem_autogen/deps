@@ -13,6 +13,7 @@ ecosystem_autogen/timestamp: \
 	/home/monika/cpp/ecosystem/src/Plant.cpp \
 	/home/monika/cpp/ecosystem/src/PoisonousPlant.cpp \
 	/home/monika/cpp/ecosystem/src/Reserve.cpp \
+	/home/monika/cpp/ecosystem/src/Scavenger.cpp \
 	/home/monika/cpp/ecosystem/src/SimulationController.cpp \
 	/home/monika/cpp/ecosystem/src/SimulationThread.cpp \
 	/home/monika/cpp/ecosystem/src/main.cpp \

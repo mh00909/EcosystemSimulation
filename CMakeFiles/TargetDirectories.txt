@@ -1,5 +1,0 @@
-/home/monika/cpp/ecosystem/CMakeFiles/ecosystem.dir
-/home/monika/cpp/ecosystem/CMakeFiles/edit_cache.dir
-/home/monika/cpp/ecosystem/CMakeFiles/rebuild_cache.dir
-/home/monika/cpp/ecosystem/CMakeFiles/ecosystem_autogen_timestamp_deps.dir
-/home/monika/cpp/ecosystem/CMakeFiles/ecosystem_autogen.dir

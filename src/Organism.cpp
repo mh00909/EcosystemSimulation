@@ -1,7 +1,8 @@
 #include "Organism.h"
 
 Organism::Organism(int posX, int posY, int initialEnergy, int sX, int sY)
-        : x(posX), y(posY), energy(initialEnergy), alive(true), age(0), stageX(sX), stageY(sY) {}
+        : x(posX), y(posY), energy(initialEnergy), alive(true), eaten(false), age(0), dead(false),
+        stageX(sX), stageY(sY) {}
 
 int Organism::getX() const {
     return x;
@@ -41,4 +42,20 @@ bool Organism::canReproduce() const {
 }
 void Organism::decreaseEnergy(int x) {
     energy -= x;
+}
+
+bool Organism::isDead() const {
+    return dead;
+}
+
+bool Organism::isEatenByScavenger() const {
+    return eaten;
+}
+
+void Organism::markAsDead() {
+    dead = true;
+}
+
+void Organism::setEaten() {
+    eaten = true;
 }

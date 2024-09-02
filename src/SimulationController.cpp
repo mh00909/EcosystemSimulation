@@ -4,11 +4,11 @@
 #include "Plant.h"
 #include "PoisonousPlant.h"
 
-SimulationController::SimulationController(int width, int height, int numHerbivores, int numCarnivores, int numPlants) {
-    reserve = std::make_shared<Reserve>(width, height, numHerbivores, numCarnivores, numPlants);
+SimulationController::SimulationController(int width, int height, int numHerbivores, int numCarnivores, int numPlants, int numScavengers) {
+    reserve = std::make_shared<Reserve>(width, height, numHerbivores, numCarnivores, numPlants, numScavengers);
 }
 
-void SimulationController::addOrganisms(int numHerbivores, int numCarnivores, int numPlants) {
+void SimulationController::addOrganisms(int numHerbivores, int numCarnivores, int numPlants, int numScavengers) {
     // Dodawanie nowych roślinożerców
     for (int i = 0; i < numHerbivores; ++i) {
         auto newHerbivore = std::make_unique<Herbivore>(rand() % reserve->getWidth(), rand() % reserve->getHeight(), reserve->getWidth(), reserve->getHeight());
@@ -31,6 +31,11 @@ void SimulationController::addOrganisms(int numHerbivores, int numCarnivores, in
         }
 
         reserve->addPlant(std::move(newPlant));
+    }
+    // Dodawanie nowych padlinożerców
+    for (int i = 0; i < numScavengers; ++i) {
+        auto newScavenger = std::make_unique<Scavenger>(rand() % reserve->getWidth(), rand() % reserve->getHeight(), reserve->getWidth(), reserve->getHeight());
+        reserve->addScavenger(std::move(newScavenger));
     }
 }
 

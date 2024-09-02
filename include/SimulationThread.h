@@ -5,11 +5,11 @@
 #include "Reserve.h"
 
 class SimulationThread : public QThread {
-Q_OBJECT  // Makro Q_OBJECT jest wymagane do użycia sygnałów i slotów
+Q_OBJECT
 
 public:
     SimulationThread(Reserve* reserve, QObject* parent = nullptr)
-            : QThread(parent), reserve(reserve), stopRequested(false) {}  // Konstruktor
+            : QThread(parent), reserve(reserve), stopRequested(false) {}
 
     void requestStop();
 
@@ -18,10 +18,10 @@ protected:
     void run() override;
 
 signals:
-    void simulationStepCompleted();  // Sygnał emitowany po zakończeniu każdego kroku symulacji
+    void simulationStepCompleted();
 
 private:
-    Reserve* reserve;  // Wskaźnik na obiekt rezerwy, który symulujemy
+    Reserve* reserve;
     QMutex mutex;  // Mutex do synchronizacji dostępu do zmiennych wątku
     bool stopRequested;  // Flaga sygnalizująca zakończenie symulacji
 };

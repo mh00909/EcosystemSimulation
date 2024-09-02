@@ -27,20 +27,18 @@ void Herbivore::interact(Reserve* reserve) {
             x - 20 < plant->getX() && plant->getX() < x + 20 &&
             y - 20 < plant->getY() && plant->getY() < y + 20) {
 
-
-
             bool isPoisonousPlant = plant.get()->isPoisonous();
 
-            if (isPoisonousPlant) {
+            if (isPoisonousPlant) { // trująca roślina zabija roślinożercę
                 reserve->stats.herbivoresPoisoned++;
                 this->setAlive(false);
-            } else {
+            } else { // nietrująca roślina dodaje energii
                 reserve->stats.plantsEaten++;
                 energy += 20;
                 plant->setAlive(false);
             }
 
-            break; // Przerwanie pętli po znalezieniu odpowiedniej rośliny
+            break;
         }
     }
 }
