@@ -36,6 +36,7 @@ private slots:
     void onRestartButtonClicked();
     void onAddOrganismsClicked();
     void onSimulationStepCompleted();
+    void setSimulationSpeed(int speed);
 
 private:
     void updateScene();
@@ -83,6 +84,7 @@ private:
     QLabel *carnivoreLabel;
     QLabel *plantLabel;
     QLabel *scavengersLabel;
+    QLabel *speedLabel;
 
     QPushButton *startButton;
     QPushButton *stopButton;
@@ -93,6 +95,7 @@ private:
     QTimer *timer;
     QElapsedTimer simulationTimer;
     qint64 simulationDuration;
+    QSlider *speedSlider;
 
     QtCharts::QLineSeries *herbivoreSeries;
     QtCharts::QLineSeries *carnivoreSeries;

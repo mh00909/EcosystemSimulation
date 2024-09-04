@@ -23,9 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Central widget, layout
     QWidget *centralWidget = new QWidget(this);
-   // QVBoxLayout *layout = new QVBoxLayout(centralWidget);
     QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
-
     QVBoxLayout *leftLayout = new QVBoxLayout();
 
     // Elementy UI
@@ -109,15 +107,24 @@ MainWindow::MainWindow(QWidget *parent)
 
     addOrganismsButton = new QPushButton("Add Organisms", this);
 
+    // Suwak do ustawiania prędkości symulacji
+    speedSlider = new QSlider(Qt::Horizontal, this);
+    speedSlider->setRange(1, 20);
+    speedSlider->setValue(1);
+    speedLabel = new QLabel("Simulation Speed", this);
+
     leftLayout->addWidget(newHerbivoreLabel);
     leftLayout->addWidget(newHerbivoresInput);
     leftLayout->addWidget(newCarnivoreLabel);
     leftLayout->addWidget(newCarnivoresInput);
     leftLayout->addWidget(newPlantsLabel);
     leftLayout->addWidget(newPlantsInput);
-    leftLayout->addWidget(addOrganismsButton);
     leftLayout->addWidget(newScavengerLabel);
     leftLayout->addWidget(newScavengersInput);
+    leftLayout->addWidget(speedLabel);
+    leftLayout->addWidget(speedSlider);
+    leftLayout->addWidget(addOrganismsButton);
+
     newHerbivoresInput->setVisible(false);
     newCarnivoresInput->setVisible(false);
     newPlantsInput->setVisible(false);
@@ -128,11 +135,12 @@ MainWindow::MainWindow(QWidget *parent)
     newScavengerLabel->setVisible(false);
     addOrganismsButton->setVisible(false);
 
+
+
+
     // scena, widok
     scene = new QGraphicsScene(this);
-
     scene->setSceneRect(0, 0, 970, 800);
-
 
     view = new QGraphicsView(scene, this);
     QPixmap backgroundPixmap(":/gui/img/back.png");
@@ -155,6 +163,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(showStatsButton, &QPushButton::clicked, this, &MainWindow::onShowStatsButtonClicked);
     connect(restartButton, &QPushButton::clicked, this, &MainWindow::onRestartButtonClicked);
     connect(addOrganismsButton, &QPushButton::clicked, this, &MainWindow::onAddOrganismsClicked);
+    connect(speedSlider, &QSlider::valueChanged,  this, &MainWindow::setSimulationSpeed);
 
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::onSimulationStepCompleted);
@@ -204,11 +213,11 @@ void MainWindow::onStartSimulation() {
         isRestarting = false;
         isPaused = false;
 
-        simulationController = std::make_unique<SimulationController>(1280, 720, numHerbivores, numCarnivores, numPlants, numScavengers);
+        simulationController = std::make_unique<SimulationController>(1200, 700, numHerbivores, numCarnivores, numPlants, numScavengers);
         simulationTimer.restart();
         updateUIForSimulationRunning();
 
-        timer->start(1000);
+        timer->start(1000 / speedSlider->value());
         updateScene();
         updateCounts();
         return;
@@ -217,14 +226,14 @@ void MainWindow::onStartSimulation() {
     if (isPaused) {
         isPaused = false;
         updateUIForSimulationRunning();
-        timer->start(1000);
+        timer->start(1000 / speedSlider->value());
         return;
     }
 
-    simulationController = std::make_unique<SimulationController>(1280, 720, numHerbivores, numCarnivores, numPlants, numScavengers);
+    simulationController = std::make_unique<SimulationController>(1200, 700, numHerbivores, numCarnivores, numPlants, numScavengers);
     simulationTimer.restart();
     updateUIForSimulationRunning();
-    timer->start(1000);
+    timer->start(1000 / speedSlider->value());
     updateScene();
     updateCounts();
 }
@@ -268,7 +277,7 @@ void MainWindow::onRestartButtonClicked() {
     int numPlants = plantInput->value();
     int numScavengers = scavengerInput->value();
 
-    simulationController = std::make_unique<SimulationController>(1280, 720, numHerbivores, numCarnivores, numPlants, numScavengers);
+    simulationController = std::make_unique<SimulationController>(1200, 700, numHerbivores, numCarnivores, numPlants, numScavengers);
 
 
     if (auto reserve = simulationController->getReserve()) {
@@ -302,7 +311,7 @@ void MainWindow::onStopSimulation() {
         newHerbivoreLabel->setVisible(true);
         newCarnivoreLabel->setVisible(true);
         newPlantsLabel->setVisible(true);
-        newScavengersInput->setVisible(true);
+        newScavengerLabel->setVisible(true);
     } else {
         onStartSimulation();
     }
@@ -315,7 +324,6 @@ void MainWindow::onSimulationEnded() {
     if (timer->isActive()) {
         timer->stop();
     }
-
 
     simulationDuration = simulationTimer.elapsed() / 1000;
     QMessageBox::information(this, "Simulation Ended", "All animals are dead. The simulation has ended.");
@@ -406,7 +414,7 @@ void MainWindow::updateScene() {
     static QPixmap deadCarnivorePixmap(":/gui/img/dead_lion.png");
     static QPixmap deadScavengerPixmap(":/gui/img/dead_hyena.png");
 
-    int organismSize = 70;
+    int organismSize = 50;
 
     // Usunięcie martwych organizmów
     for (auto it = organismItems.begin(); it != organismItems.end();) {
@@ -434,6 +442,17 @@ void MainWindow::updateScene() {
 
                     organismItems[organism.get()] = item;
                     scene->addItem(item);
+
+                    if(!organism->isAlive()) {
+                        organism->setEaten();
+                        if (dynamic_cast<Herbivore*>(organism.get())) {
+                            reserve->stats.deathsHerbivores++;
+                        } else if (dynamic_cast<Carnivore*>(organism.get())) {
+                            reserve->stats.deathsCarnivores++;
+                        } else if (dynamic_cast<Scavenger*>(organism.get())) {
+                            reserve->stats.deathScavengers++;
+                        }
+                    }
                 }
             }
         }
@@ -502,12 +521,13 @@ void MainWindow::onShowStatsButtonClicked() {
             "Herbivores born: %1\n"
             "Carnivores born: %2\n"
             "Scavengers born: %3\n"
-            "Herbivores died: %3\n"
+            "Herbivores died: %4\n"
             "Carnivores died: %5\n"
             "Scavengers died: %6\n"
             "Plants eaten: %7\n"
-            "Herbivores eaten by carnivores: %6\n"
-            "Herbivores poisoned by plants: %7\n")
+            "Herbivores eaten by carnivores: %8\n"
+            "Herbivores poisoned by plants: %9\n"
+            "Dead animals eaten by scavengers: %10")
             .arg(stats.birthsHerbivores)
             .arg(stats.birthsCarnivores)
             .arg(stats.birthScavengers)
@@ -516,7 +536,8 @@ void MainWindow::onShowStatsButtonClicked() {
             .arg(stats.deathScavengers)
             .arg(stats.plantsEaten)
             .arg(stats.herbivoresEaten)
-            .arg(stats.herbivoresPoisoned);
+            .arg(stats.herbivoresPoisoned)
+            .arg(stats.eatenByScavengers);
 
     QMessageBox::information(this, "Simulation Stats", statsMessage);
 
@@ -565,6 +586,8 @@ void MainWindow::updateUIForSimulationRunning() {
     startButton->setVisible(false);
     stopButton->setVisible(true);
     stopButton->setText("Stop Simulation");
+
+    speedSlider->setEnabled(true);
 }
 
 void MainWindow::resetUIForNewSimulation() {
@@ -585,7 +608,7 @@ void MainWindow::resetUIForNewSimulation() {
     herbivoreCountLabel->setVisible(false);
     carnivoreCountLabel->setVisible(false);
     plantCountLabel->setVisible(false);
-    scavengerCountLabel->setVisible(true);
+    scavengerCountLabel->setVisible(false);
 
     newHerbivoresInput->setVisible(false);
     newCarnivoresInput->setVisible(false);
@@ -731,6 +754,12 @@ void MainWindow::adjustAxisRange() {
     axisX->setRange(0, maxX);
     axisY->setRange(0, maxY);
 }
+
+void MainWindow::setSimulationSpeed(int speed) {
+    int interval = 1000/speed;
+    timer->setInterval(interval);
+}
+
 MainWindow::~MainWindow() {
     if (timer) {
         timer->stop();

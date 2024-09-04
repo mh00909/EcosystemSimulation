@@ -36,7 +36,7 @@ void Carnivore::interact(Reserve* reserve) {
 }
 
 void Carnivore::updateEnergy() {
-    energy -= 10;
+    energy = 0.99 * energy;
     if (energy <= 0) alive = false;
     incrementAge();
 }

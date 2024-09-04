@@ -121,8 +121,8 @@ void Reserve::handleReproduction() {
                     int newY = (herb->getY() + rand() % max_organism_move - max_organism_move / 2);
                     newHerbivores.push_back(std::make_unique<Herbivore>(newX, newY, width, height));
 
-                    herb->decreaseEnergy(20);
-                    otherHerb->decreaseEnergy(20);
+                    herb->decreaseEnergy(herb->getEnergy()/2);
+                    otherHerb->decreaseEnergy(otherHerb->getEnergy()/2);
 
                     stats.birthsHerbivores++;
                 }
@@ -145,8 +145,8 @@ void Reserve::handleReproduction() {
                     int newY = (carn->getY() + rand() % max_organism_move - max_organism_move * 2);
                     newCarnivores.push_back(std::make_unique<Carnivore>(newX, newY, width, height));
 
-                    carn->decreaseEnergy(5);
-                    otherCarn->decreaseEnergy(5);
+                    carn->decreaseEnergy(carn->getEnergy()/2);
+                    otherCarn->decreaseEnergy(carn->getEnergy()/2);
 
                     stats.birthsCarnivores++;
                 }
@@ -170,8 +170,8 @@ void Reserve::handleReproduction() {
                     int newY = (scav->getY() + rand() % max_organism_move - max_organism_move * 2);
                     newScavengers.push_back(std::make_unique<Scavenger>(newX, newY, width, height));
 
-                    scav->decreaseEnergy(5);
-                    otherScav->decreaseEnergy(5);
+                    scav->decreaseEnergy(scav->getEnergy()/2);
+                    otherScav->decreaseEnergy(scav->getEnergy()/2);
 
                     stats.birthScavengers++;
                 }

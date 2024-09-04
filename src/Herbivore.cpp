@@ -4,7 +4,7 @@
 #include "PoisonousPlant.h"
 
 Herbivore::Herbivore(int x, int y, int sceneX, int sceneY)
-        : Organism(x, y, 100, sceneX, sceneY) {
+        : Organism(x, y, 120, sceneX, sceneY) {
     if (x < 0) x = 0;
     if (x >= sceneX) x = sceneX - 1;
     if (y < 0) y = 0;
@@ -45,7 +45,7 @@ void Herbivore::interact(Reserve* reserve) {
 
 
 void Herbivore::updateEnergy() {
-    energy -= 5;
+    energy = 0.99 * energy;
     if (energy <= 0) alive = false;
     incrementAge();
 }

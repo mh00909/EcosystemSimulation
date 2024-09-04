@@ -3,7 +3,7 @@
 #include "Reserve.h"
 
 Scavenger::Scavenger(int x, int y, int sceneX, int sceneY)
-        : Organism(x, y, 100, sceneX, sceneY) {
+        : Organism(x, y, 150, sceneX, sceneY) {
     scavengingRange = 30;
     if (x < 0) x = 0;
     if (x >= sceneX) x = sceneX - 1;
@@ -20,7 +20,7 @@ void Scavenger::move(int maxX, int maxY, int sceneX, int sceneY) {
     if (y >= sceneY) y = sceneY - 1;
 }
 void Scavenger::updateEnergy() {
-    energy -= 2;
+    energy = 0.99 * energy;
     if (energy <= 0) alive = false;
     incrementAge();
 }
@@ -33,6 +33,7 @@ void Scavenger::interact(Reserve *reserve) {
         {
             energy += 50;
             herb->setEaten();
+            reserve->stats.eatenByScavengers++;
             break;
         }
     }
@@ -43,6 +44,7 @@ void Scavenger::interact(Reserve *reserve) {
         {
             energy += 50;
             carnivore->setEaten();
+            reserve->stats.eatenByScavengers++;
             break;
         }
     }
@@ -53,6 +55,7 @@ void Scavenger::interact(Reserve *reserve) {
         {
             energy += 50;
             scavenger->setEaten();
+            reserve->stats.eatenByScavengers++;
             break;
         }
     }
