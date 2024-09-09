@@ -211,7 +211,10 @@
 		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Widgets/Qt5WidgetsConfig.cmake",
 		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Charts/Qt5ChartsConfigVersion.cmake",
 		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Charts/Qt5ChartsConfig.cmake",
-		"/home/monika/cpp/ecosystem/resources.qrc"
+		"/home/monika/cpp/ecosystem/resources.qrc",
+		"/snap/clion/292/bin/cmake/linux/x64/share/cmake-3.29/Modules/FetchContent.cmake",
+		"/snap/clion/292/bin/cmake/linux/x64/share/cmake-3.29/Modules/ExternalProject/shared_internal_commands.cmake",
+		"/snap/clion/292/bin/cmake/linux/x64/share/cmake-3.29/Modules/FetchContent/CMakeLists.cmake.in"
 	],
 	"CMAKE_SOURCE_DIR" : "/home/monika/cpp/ecosystem",
 	"CROSS_CONFIG" : false,

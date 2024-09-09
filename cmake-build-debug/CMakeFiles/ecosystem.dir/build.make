@@ -91,6 +91,9 @@ qrc_resources.cpp: /home/monika/cpp/ecosystem/gui/img/dead_deer.png
 qrc_resources.cpp: /home/monika/cpp/ecosystem/gui/img/dead_hyena.png
 qrc_resources.cpp: /home/monika/cpp/ecosystem/gui/img/dead_lion.png
 qrc_resources.cpp: /home/monika/cpp/ecosystem/gui/img/back.png
+qrc_resources.cpp: /home/monika/cpp/ecosystem/gui/img/lake.png
+qrc_resources.cpp: /home/monika/cpp/ecosystem/gui/img/forest.png
+qrc_resources.cpp: /home/monika/cpp/ecosystem/gui/img/mountains.png
 qrc_resources.cpp: resources.qrc.depends
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/home/monika/cpp/ecosystem/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating qrc_resources.cpp"
 	/usr/lib/qt5/bin/rcc --name resources --output /home/monika/cpp/ecosystem/cmake-build-debug/qrc_resources.cpp /home/monika/cpp/ecosystem/resources.qrc

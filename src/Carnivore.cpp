@@ -11,14 +11,40 @@ Carnivore::Carnivore(int x, int y, int sceneX, int sceneY)
     if (y >= sceneY) y = sceneY - 1;
 }
 
-void Carnivore::move(int maxX, int maxY, int sceneX, int sceneY) {
-    x = x + rand() % maxX - maxX/2;
-    y = y + rand() % maxY - maxY/2;
+void Carnivore::move(int maxX, int maxY, int sceneX, int sceneY, Reserve *reserve) {
+    int newX = x + rand() % maxX - maxX/2;
+    int newY = y + rand() % maxY - maxY/2;
 
     if (x < 0) x = 0;
     if (x >= sceneX) x = sceneX - 1;
     if (y < 0) y = 0;
     if (y >= sceneY) y = sceneY - 1;
+
+    // Pobierz typ terenu w nowej pozycji
+    TerrainType terrain = reserve->getTerrainType(newX, newY);
+
+    // Sprawdź wpływ terenu na ruch
+    switch (terrain) {
+        case TerrainType::Water:
+            // Roślinożercy nie mogą wejść na wodę
+            return;  // Anuluj ruch
+        case TerrainType::Mountain:
+            // Ruch po górach jest wolniejszy
+            if (rand() % 2 == 0) {
+                return;  // Zmniejszona szansa na ruch
+            }
+            break;
+        case TerrainType::Forest:
+            // Ruch przez las może być trudniejszy lub wolniejszy
+            // Można tu dodać logikę
+            break;
+        default:
+            break;
+    }
+
+    // Aktualizuj pozycję organizmu
+    x = newX;
+    y = newY;
 }
 
 void Carnivore::interact(Reserve* reserve) {

@@ -6,31 +6,76 @@
 #include <QDebug>
 #include <thread>
 #include <chrono>
+#include <random>
 
 // Konstruktor klasy Reserve, inicjalizujący rezerwat i dodający organizmy
 Reserve::Reserve(int w, int h, int numHerbivores, int numCarnivores, int numPlants, int numScavengers)
         : QObject(nullptr), width(w), height(h) {
 
-    srand(time(0));
+    initializeTerrain();
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distWidth(0, width - 1);
+    std::uniform_int_distribution<> distHeight(0, height - 1);
+    std::uniform_int_distribution<> distPlantType(0, 1);
+
+
+
     // Tworzenie roślinożerców
     for (int i = 0; i < numHerbivores; i++) {
-        herbivores.push_back(std::make_unique<Herbivore>(rand() % width, rand() % height, width, height));
+        int x = distWidth(gen);
+        int y = distHeight(gen);
+
+        TerrainType terrainType = getTerrainType(x, y);
+        while (terrainType != TerrainType::Grassland) {
+            x = distWidth(gen);
+            y = distHeight(gen);
+            terrainType = getTerrainType(x, y);
+        }
+        herbivores.push_back(std::make_unique<Herbivore>(x, y, width, height));
     }
     // Tworzenie drapieżników
     for (int i = 0; i < numCarnivores; i++) {
-        carnivores.push_back(std::make_unique<Carnivore>(rand() % width, rand() % height, width, height));
+        int x = distWidth(gen);
+        int y = distHeight(gen);
+        TerrainType terrainType = getTerrainType(x, y);
+        while (terrainType != TerrainType::Grassland) {
+            x = distWidth(gen);
+            y = distHeight(gen);
+            terrainType = getTerrainType(x, y);
+        }
+        carnivores.push_back(std::make_unique<Carnivore>(x, y, width, height));
     }
 
     for(int i=0; i < numScavengers; i++) {
-        scavengers.push_back(std::make_unique<Scavenger>(rand() % width, rand() % height, width, height));
+        int x = distWidth(gen);
+        int y = distHeight(gen);
+        TerrainType terrainType = getTerrainType(x, y);
+        while (terrainType != TerrainType::Grassland) {
+            x = distWidth(gen);
+            y = distHeight(gen);
+            terrainType = getTerrainType(x, y);
+        }
+        scavengers.push_back(std::make_unique<Scavenger>(x, y, width, height));
     }
 
     // Tworzenie roślin, losowo wybierając między zwykłą a trującą
     for (int i = 0; i < numPlants; i++) {
-        if (rand() % 2 == 0) {  // Losowanie między zwykłą rośliną a trującą
-            plants.push_back(std::make_unique<PoisonousPlant>(rand() % width, rand() % height, width, height));
+        int x = distWidth(gen);
+        int y = distHeight(gen);
+
+        TerrainType terrainType = getTerrainType(x, y);
+        while (terrainType != TerrainType::Grassland) {
+            x = distWidth(gen);
+            y = distHeight(gen);
+            terrainType = getTerrainType(x, y);
+        }
+
+        if (distPlantType(gen) == 0) {  // Losowanie między zwykłą rośliną a trującą
+            plants.push_back(std::make_unique<PoisonousPlant>(x, y, width, height));
         } else {
-            plants.push_back(std::make_unique<Plant>(rand() % width, rand() % height, width, height));
+            plants.push_back(std::make_unique<Plant>(x, y, width, height));
         }
     }
 }
@@ -47,18 +92,21 @@ void Reserve::simulateStep() {
     // Obsługa ruchu i starzenia się organizmów
     for (auto &herb : herbivores) {
         if (herb && herb->isAlive()) {
-            herb->ageAndConsumeEnergy(energyLossPerStep);
-            herb->move(max_organism_move, max_organism_move, width, height);
-            aliveHerbivores++;
+            herb->ageAndConsumeEnergy(energyLossPerStep);  // Starzenie się i zużycie energii
+            herb->searchForPlants(this);  // Znajdowanie rośliny
+            herb->move(max_organism_move, max_organism_move, width, height, this);  // Ruch
+            herb->consumePlant(this);  // Konsumowanie rośliny, jeśli jest na tym samym polu
+            aliveHerbivores++;  // Zliczanie żywych roślinożerców
             totalAgeHerbivores += herb->getAge();
             totalEnergyHerbivores += herb->getEnergy();
         }
     }
 
+
     for (auto &carn : carnivores) {
         if (carn && carn->isAlive()) {
             carn->ageAndConsumeEnergy(energyLossPerStep);
-            carn->move(max_organism_move, max_organism_move, width, height);
+            carn->move(max_organism_move, max_organism_move, width, height, this);
             aliveCarnivores++;
             totalAgeCarnivores += carn->getAge();
             totalEnergyCarnivores += carn->getEnergy();
@@ -68,7 +116,7 @@ void Reserve::simulateStep() {
     for (auto &scav : scavengers) {
         if (scav && scav->isAlive()) {
             scav->ageAndConsumeEnergy(energyLossPerStep);
-            scav->move(max_organism_move, max_organism_move, width, height);
+            scav->move(max_organism_move, max_organism_move, width, height, this);
             aliveScavengers++;
         }
     }
@@ -217,18 +265,35 @@ void Reserve::handleInteractions() {
 
 void Reserve::removeDeadOrganisms() {
     for (auto it = herbivores.begin(); it != herbivores.end();) {
+
         if (*it && !(*it)->isAlive() && (*it)->isEatenByScavenger()) {
+
             emit organismDied(it->get());
             it = herbivores.erase(it);
-        } else {
+
+        } else if (*it && !(*it)->isAlive() && !(*it)->updatedOrganisms) {
+
+            stats.deathsHerbivores++;
+            (*it)->updatedOrganisms = true;
+            ++it;
+
+        }
+        else {
             ++it;
         }
     }
 
     for (auto it = carnivores.begin(); it != carnivores.end();) {
+
         if (*it && !(*it)->isAlive() && (*it)->isEatenByScavenger()) {
+
             emit organismDied(it->get());
             it = carnivores.erase(it);
+
+        } else if (*it && !(*it)->isAlive() && !(*it)->updatedOrganisms) {
+            stats.deathsCarnivores++;
+            (*it)->updatedOrganisms = true;
+            ++it;
         } else {
             ++it;
         }
@@ -238,6 +303,11 @@ void Reserve::removeDeadOrganisms() {
         if (*it && !(*it)->isAlive() && (*it)->isEatenByScavenger()) {
             emit organismDied(it->get());
             it = scavengers.erase(it);
+        }
+        else if (*it && !(*it)->isAlive() && !(*it)->updatedOrganisms) {
+            stats.deathScavengers++;
+            (*it)->updatedOrganisms = true;
+            ++it;
         } else {
             ++it;
         }
@@ -308,3 +378,55 @@ void Reserve::clearAllOrganisms() {
 }
 
 Reserve::~Reserve(){}
+
+void Reserve::initializeTerrain() {
+    terrainGrid.resize(height, std::vector<TerrainType>(width, TerrainType::Grassland));
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    addRandomArea(gen, TerrainType::Forest, 2);
+    addRandomArea(gen, TerrainType::Water, 5);
+    addRandomArea(gen, TerrainType::Mountain, 5);
+}
+
+void Reserve::addRandomArea(std::mt19937 &gen, TerrainType terrainType, int areaCount) {
+    std::uniform_int_distribution<> posXDist(0, width - 1);
+    std::uniform_int_distribution<> posYDist(0, height - 1);
+    //std::uniform_int_distribution<> sizeDist(3, 10);
+
+    for (int i = 0; i < areaCount; ++i) {
+        // Losuj pozycję i rozmiar prostokąta
+        int startX = posXDist(gen);
+        int startY = posYDist(gen);
+
+        int areaWidth = 200;
+        int areaHeight = 200;
+
+        if (terrainType == TerrainType::Mountain) {
+            areaWidth = 200;
+            areaHeight = 80;
+        }
+        if (terrainType == TerrainType::Water) {
+            areaWidth = 200;
+            areaHeight = 100;
+        }
+        if (terrainType == TerrainType::Forest) {
+            areaWidth = 250;
+            areaHeight = 250;
+        }
+
+        // Zapełnij obszar typem terenu
+        for (int y = startY; y < startY + areaHeight && y < height; ++y) {
+            for (int x = startX; x < startX + areaWidth && x < width; ++x) {
+                terrainGrid[y][x] = terrainType;
+            }
+        }
+    }
+}
+TerrainType Reserve::getTerrainType(int x, int y) {
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+        return TerrainType::Grassland;
+    }
+    return terrainGrid[y][x];
+}

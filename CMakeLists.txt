@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.20)
 project(ecosystem)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -38,14 +38,38 @@ set(HEADERS
         include/PoisonousPlant.h
         include/SimulationThread.h
         include/SimulationController.h
+        include/TerrainType.h
         gui/MainWindow.h
         gui/InteractiveOrganism.h
 )
 qt5_wrap_cpp(MOC_SOURCES include/Reserve.h)
 qt5_wrap_cpp(MOC_SOURCES include/SimulationThread.h)
+qt5_wrap_cpp(MOC_SOURCES gui/MainWindow.h)
 
 qt5_add_resources(RESOURCES resources.qrc)
-qt5_wrap_cpp(MOC_SOURCES gui/MainWindow.h)
+
 add_executable(ecosystem ${SOURCES} ${MOC_SOURCES} ${RESOURCES})
 target_link_libraries(ecosystem Qt5::Widgets)
 target_link_libraries(ecosystem Qt5::Widgets Qt5::Charts)
+
+
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/release-1.12.1.tar.gz
+)
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+
+set(TEST_SOURCES
+        tests/OrganismTest.cpp
+
+)
+
+add_executable(ecosystem_tests ${TEST_SOURCES} ${SOURCES})
+target_link_libraries(ecosystem_tests gtest gtest_main pthread)
+target_link_libraries(ecosystem_tests Qt5::Widgets Qt5::Charts)
+
+add_test(NAME OrganismTest COMMAND ecosystem_tests)

@@ -5,10 +5,12 @@
 #include <memory>
 #include <QObject>
 #include <QMutex>
+#include <random>
 #include "Plant.h"
 #include "Herbivore.h"
 #include "Carnivore.h"
 #include "Scavenger.h"
+#include "TerrainType.h"
 
 class Carnivore;
 class Herbivore;
@@ -46,6 +48,7 @@ public:
     void handleInteractions();
     void removeDeadOrganisms();
 
+    void initializeTerrain(); // Inicjalizacja siatki terenu
 
 
     // Metody zwracające referencje do wektorów z organizmami
@@ -57,6 +60,10 @@ public:
     // Szerokość, wysokość rezerwatu
     int getWidth() const;
     int getHeight() const;
+
+    TerrainType getTerrainType(int x, int y);
+
+    std::vector<std::vector<TerrainType>> terrainGrid;
 
     // Zmienna przechowująca statystyki symulacji
     SimulationStats stats;
@@ -82,6 +89,9 @@ private:
     std::vector<std::unique_ptr<Scavenger>> scavengers;
 
     QMutex mutex; // Mutex do synchronizacji dostępu do danych
+
+
+    void addRandomArea(std::mt19937& gen, TerrainType terrainType, int areaCount);
 };
 
 

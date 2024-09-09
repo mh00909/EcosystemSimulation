@@ -37,6 +37,8 @@ private slots:
     void onAddOrganismsClicked();
     void onSimulationStepCompleted();
     void setSimulationSpeed(int speed);
+    void zoomIn();
+    void zoomOut();
 
 private:
     void updateScene();
@@ -107,6 +109,13 @@ private:
     QValueAxis *axisY;
 
     QChartView* chartView;
+
+    QPixmap forestPixmap;
+    QPixmap waterPixmap;
+    QPixmap desertPixmap;
+    QPixmap mountainPixmap;
+
+    std::unordered_map<TerrainType, QPixmap> terrainPixmaps;
 };
 
 #endif //ECOSYSTEM_MAINWINDOW_H

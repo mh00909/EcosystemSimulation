@@ -8,7 +8,7 @@ Plant::Plant(int x, int y, int sceneX, int sceneY)
     if (y >= sceneY) y = sceneY - 1;
 }
 
-void Plant::move(int maxX, int maxY, int sceneX, int sceneY) {
+void Plant::move(int maxX, int maxY, int sceneX, int sceneY, Reserve *reserve) {
 
     if (x < 0) x = 0;
     if (x >= sceneX) x = sceneX - 1;

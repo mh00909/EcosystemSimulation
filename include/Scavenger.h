@@ -9,7 +9,7 @@ class Scavenger : public Organism {
 public:
     Scavenger(int x, int y, int width, int height);
 
-    void move(int max, int y, int sceneX, int sceneY) override;
+    void move(int max, int y, int sceneX, int sceneY, Reserve *reserve) override;
     void updateEnergy() override;
     void interact(Reserve* reserve) override;
     bool isAlive() const ;

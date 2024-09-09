@@ -32,6 +32,22 @@ MainWindow::MainWindow(QWidget *parent)
     showStatsButton = new QPushButton("Show Statistics", this);
     restartButton = new QPushButton("Restart Simulation", this);
 
+
+    // Układ poziomy dla przycisków + i -
+    QWidget *zoomWidget = new QWidget(this);
+    zoomWidget->setFixedSize(100, 40);
+    QHBoxLayout *zoomLayout = new QHBoxLayout(zoomWidget);
+    zoomLayout->setSpacing(0);
+    zoomLayout->setContentsMargins(0, 0, 0, 0);
+    QToolButton *zoomInButton = new QToolButton();
+    zoomInButton->setText("+");
+    QToolButton *zoomOutButton = new QToolButton(this);
+    zoomOutButton->setText("-");
+    zoomInButton->setFixedSize(30, 30);
+    zoomOutButton->setFixedSize(30, 30);
+    zoomLayout->addWidget(zoomInButton);
+    zoomLayout->addWidget(zoomOutButton);
+
     herbivoreInput = new QSpinBox(this);
     herbivoreInput->setRange(0, 100);
     herbivoreInput->setValue(15);
@@ -51,6 +67,7 @@ MainWindow::MainWindow(QWidget *parent)
     plantLabel = new QLabel("Plants:", this);
     scavengersLabel = new QLabel("Scavengers:", this);
 
+    leftLayout->addWidget(zoomWidget);
     leftLayout->addWidget(herbivoreLabel);
     leftLayout->addWidget(herbivoreInput);
     leftLayout->addWidget(carnivoreLabel);
@@ -164,6 +181,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(restartButton, &QPushButton::clicked, this, &MainWindow::onRestartButtonClicked);
     connect(addOrganismsButton, &QPushButton::clicked, this, &MainWindow::onAddOrganismsClicked);
     connect(speedSlider, &QSlider::valueChanged,  this, &MainWindow::setSimulationSpeed);
+    connect(zoomInButton, &QToolButton::clicked, this, &MainWindow::zoomIn);
+    connect(zoomOutButton, &QToolButton::clicked, this, &MainWindow::zoomOut);
+
+
 
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::onSimulationStepCompleted);
@@ -405,6 +426,46 @@ void MainWindow::updateScene() {
     scene->clear();
     organismItems.clear();
 
+
+    static QPixmap forestPixmap(":/gui/img/forest.png");
+    static QPixmap waterPixmap(":/gui/img/lake.png");
+    static QPixmap mountainPixmap(":/gui/img/mountains.png");
+
+
+    int terrainHeight = 200, terrainWidth = 200;
+    for (int y = 0; y < reserve->getHeight(); y++) {
+        for (int x = 0; x < reserve->getWidth(); x++) {
+            TerrainType terrain = reserve->getTerrainType(x, y);
+            QPixmap pixmap;
+
+            switch (terrain) {
+                case TerrainType::Forest:
+                    pixmap = forestPixmap;
+                    terrainWidth = 250;
+                    terrainHeight = 250;
+                    break;
+                case TerrainType::Water:
+                    pixmap = waterPixmap;
+                    terrainHeight = 100;
+                    terrainWidth = 200;
+                    break;
+                case TerrainType::Mountain:
+                    pixmap = mountainPixmap;
+                    terrainHeight = 80;
+                    terrainWidth = 200;
+                    break;
+                default:
+                    continue;
+            }
+
+            QGraphicsPixmapItem *terrainItem = scene->addPixmap(pixmap.scaled(terrainWidth, terrainHeight));
+            terrainItem->setPos(x , y );
+            x += terrainWidth;
+        }
+        y += terrainHeight;
+    }
+
+
     static QPixmap plantPixmap(":/gui/img/flower.png");
     static QPixmap poisonousPlantPixmap(":/gui/img/poisonous.png");
     static QPixmap herbivorePixmap(":/gui/img/deer.png");
@@ -432,7 +493,9 @@ void MainWindow::updateScene() {
         for (const auto& organism : organisms) {
             if (organism) {
                 QPixmap pixmap = organism->isAlive() ? livePixmap : deadPixmap;
-
+                if (!organism->isAlive() && organism->isEatenByScavenger()) {
+                    continue;
+                }
                 auto it = organismItems.find(organism.get());
                 if (it != organismItems.end()) {
                     it->second->setPixmap(pixmap);
@@ -443,16 +506,7 @@ void MainWindow::updateScene() {
                     organismItems[organism.get()] = item;
                     scene->addItem(item);
 
-                    if(!organism->isAlive()) {
-                        organism->setEaten();
-                        if (dynamic_cast<Herbivore*>(organism.get())) {
-                            reserve->stats.deathsHerbivores++;
-                        } else if (dynamic_cast<Carnivore*>(organism.get())) {
-                            reserve->stats.deathsCarnivores++;
-                        } else if (dynamic_cast<Scavenger*>(organism.get())) {
-                            reserve->stats.deathScavengers++;
-                        }
-                    }
+
                 }
             }
         }
@@ -512,7 +566,6 @@ void MainWindow::updateCounts() {
 
 
 void MainWindow::onShowStatsButtonClicked() {
-    // Pobranie statystyk symulacji z kontrolera
     SimulationStats stats = simulationController->getReserve()->getStats();
 
     // Tworzenie wiadomości ze statystykami
@@ -758,6 +811,17 @@ void MainWindow::adjustAxisRange() {
 void MainWindow::setSimulationSpeed(int speed) {
     int interval = 1000/speed;
     timer->setInterval(interval);
+}
+
+void MainWindow::zoomIn() {
+    if (view->transform().m11() < 4.0) {
+        view->scale(1.2, 1.2);
+    }
+}
+void MainWindow::zoomOut() {
+    if (view->transform().m11() > 0.25) {
+        view->scale(0.8, 0.8);
+    }
 }
 
 MainWindow::~MainWindow() {

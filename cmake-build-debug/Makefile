@@ -65,6 +65,16 @@ CMAKE_BINARY_DIR = /home/monika/cpp/ecosystem/cmake-build-debug
 #=============================================================================
 # Targets provided globally by CMake.
 
+# Special rule for the target test
+test:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running tests..."
+	/snap/clion/292/bin/cmake/linux/x64/bin/ctest --force-new-ctest-process $(ARGS)
+.PHONY : test
+
+# Special rule for the target test
+test/fast: test
+.PHONY : test/fast
+
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "No interactive CMake dialog available..."
@@ -84,6 +94,51 @@ rebuild_cache:
 # Special rule for the target rebuild_cache
 rebuild_cache/fast: rebuild_cache
 .PHONY : rebuild_cache/fast
+
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+.PHONY : list_install_components/fast
+
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	/snap/clion/292/bin/cmake/linux/x64/bin/cmake -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	/snap/clion/292/bin/cmake/linux/x64/bin/cmake -P cmake_install.cmake
+.PHONY : install/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	/snap/clion/292/bin/cmake/linux/x64/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	/snap/clion/292/bin/cmake/linux/x64/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	/snap/clion/292/bin/cmake/linux/x64/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	/snap/clion/292/bin/cmake/linux/x64/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -130,6 +185,19 @@ ecosystem/fast:
 .PHONY : ecosystem/fast
 
 #=============================================================================
+# Target rules for targets named ecosystem_tests
+
+# Build rule for target.
+ecosystem_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ecosystem_tests
+.PHONY : ecosystem_tests
+
+# fast build rule for target.
+ecosystem_tests/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/build
+.PHONY : ecosystem_tests/fast
+
+#=============================================================================
 # Target rules for targets named ecosystem_autogen_timestamp_deps
 
 # Build rule for target.
@@ -155,6 +223,188 @@ ecosystem_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_autogen.dir/build.make CMakeFiles/ecosystem_autogen.dir/build
 .PHONY : ecosystem_autogen/fast
 
+#=============================================================================
+# Target rules for targets named ecosystem_tests_autogen_timestamp_deps
+
+# Build rule for target.
+ecosystem_tests_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ecosystem_tests_autogen_timestamp_deps
+.PHONY : ecosystem_tests_autogen_timestamp_deps
+
+# fast build rule for target.
+ecosystem_tests_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests_autogen_timestamp_deps.dir/build.make CMakeFiles/ecosystem_tests_autogen_timestamp_deps.dir/build
+.PHONY : ecosystem_tests_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named ecosystem_tests_autogen
+
+# Build rule for target.
+ecosystem_tests_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ecosystem_tests_autogen
+.PHONY : ecosystem_tests_autogen
+
+# fast build rule for target.
+ecosystem_tests_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests_autogen.dir/build.make CMakeFiles/ecosystem_tests_autogen.dir/build
+.PHONY : ecosystem_tests_autogen/fast
+
+#=============================================================================
+# Target rules for targets named gmock
+
+# Build rule for target.
+gmock: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock
+.PHONY : gmock
+
+# fast build rule for target.
+gmock/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/build
+.PHONY : gmock/fast
+
+#=============================================================================
+# Target rules for targets named gmock_main
+
+# Build rule for target.
+gmock_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock_main
+.PHONY : gmock_main
+
+# fast build rule for target.
+gmock_main/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build
+.PHONY : gmock_main/fast
+
+#=============================================================================
+# Target rules for targets named gmock_autogen_timestamp_deps
+
+# Build rule for target.
+gmock_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock_autogen_timestamp_deps
+.PHONY : gmock_autogen_timestamp_deps
+
+# fast build rule for target.
+gmock_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock_autogen_timestamp_deps.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock_autogen_timestamp_deps.dir/build
+.PHONY : gmock_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named gmock_autogen
+
+# Build rule for target.
+gmock_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock_autogen
+.PHONY : gmock_autogen
+
+# fast build rule for target.
+gmock_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock_autogen.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock_autogen.dir/build
+.PHONY : gmock_autogen/fast
+
+#=============================================================================
+# Target rules for targets named gmock_main_autogen_timestamp_deps
+
+# Build rule for target.
+gmock_main_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock_main_autogen_timestamp_deps
+.PHONY : gmock_main_autogen_timestamp_deps
+
+# fast build rule for target.
+gmock_main_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock_main_autogen_timestamp_deps.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock_main_autogen_timestamp_deps.dir/build
+.PHONY : gmock_main_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named gmock_main_autogen
+
+# Build rule for target.
+gmock_main_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock_main_autogen
+.PHONY : gmock_main_autogen
+
+# fast build rule for target.
+gmock_main_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock_main_autogen.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock_main_autogen.dir/build
+.PHONY : gmock_main_autogen/fast
+
+#=============================================================================
+# Target rules for targets named gtest
+
+# Build rule for target.
+gtest: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest
+.PHONY : gtest
+
+# fast build rule for target.
+gtest/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest.dir/build
+.PHONY : gtest/fast
+
+#=============================================================================
+# Target rules for targets named gtest_main
+
+# Build rule for target.
+gtest_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest_main
+.PHONY : gtest_main
+
+# fast build rule for target.
+gtest_main/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build
+.PHONY : gtest_main/fast
+
+#=============================================================================
+# Target rules for targets named gtest_autogen_timestamp_deps
+
+# Build rule for target.
+gtest_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest_autogen_timestamp_deps
+.PHONY : gtest_autogen_timestamp_deps
+
+# fast build rule for target.
+gtest_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_autogen_timestamp_deps.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_autogen_timestamp_deps.dir/build
+.PHONY : gtest_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named gtest_autogen
+
+# Build rule for target.
+gtest_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest_autogen
+.PHONY : gtest_autogen
+
+# fast build rule for target.
+gtest_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_autogen.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_autogen.dir/build
+.PHONY : gtest_autogen/fast
+
+#=============================================================================
+# Target rules for targets named gtest_main_autogen_timestamp_deps
+
+# Build rule for target.
+gtest_main_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest_main_autogen_timestamp_deps
+.PHONY : gtest_main_autogen_timestamp_deps
+
+# fast build rule for target.
+gtest_main_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main_autogen_timestamp_deps.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main_autogen_timestamp_deps.dir/build
+.PHONY : gtest_main_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named gtest_main_autogen
+
+# Build rule for target.
+gtest_main_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest_main_autogen
+.PHONY : gtest_main_autogen
+
+# fast build rule for target.
+gtest_main_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main_autogen.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main_autogen.dir/build
+.PHONY : gtest_main_autogen/fast
+
 ecosystem_autogen/mocs_compilation.o: ecosystem_autogen/mocs_compilation.cpp.o
 .PHONY : ecosystem_autogen/mocs_compilation.o
 
@@ -179,12 +429,37 @@ ecosystem_autogen/mocs_compilation.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/ecosystem_autogen/mocs_compilation.cpp.s
 .PHONY : ecosystem_autogen/mocs_compilation.cpp.s
 
+ecosystem_tests_autogen/mocs_compilation.o: ecosystem_tests_autogen/mocs_compilation.cpp.o
+.PHONY : ecosystem_tests_autogen/mocs_compilation.o
+
+# target to build an object file
+ecosystem_tests_autogen/mocs_compilation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/ecosystem_tests_autogen/mocs_compilation.cpp.o
+.PHONY : ecosystem_tests_autogen/mocs_compilation.cpp.o
+
+ecosystem_tests_autogen/mocs_compilation.i: ecosystem_tests_autogen/mocs_compilation.cpp.i
+.PHONY : ecosystem_tests_autogen/mocs_compilation.i
+
+# target to preprocess a source file
+ecosystem_tests_autogen/mocs_compilation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/ecosystem_tests_autogen/mocs_compilation.cpp.i
+.PHONY : ecosystem_tests_autogen/mocs_compilation.cpp.i
+
+ecosystem_tests_autogen/mocs_compilation.s: ecosystem_tests_autogen/mocs_compilation.cpp.s
+.PHONY : ecosystem_tests_autogen/mocs_compilation.s
+
+# target to generate assembly for a file
+ecosystem_tests_autogen/mocs_compilation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/ecosystem_tests_autogen/mocs_compilation.cpp.s
+.PHONY : ecosystem_tests_autogen/mocs_compilation.cpp.s
+
 gui/InteractiveOrganism.o: gui/InteractiveOrganism.cpp.o
 .PHONY : gui/InteractiveOrganism.o
 
 # target to build an object file
 gui/InteractiveOrganism.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/gui/InteractiveOrganism.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/gui/InteractiveOrganism.cpp.o
 .PHONY : gui/InteractiveOrganism.cpp.o
 
 gui/InteractiveOrganism.i: gui/InteractiveOrganism.cpp.i
@@ -193,6 +468,7 @@ gui/InteractiveOrganism.i: gui/InteractiveOrganism.cpp.i
 # target to preprocess a source file
 gui/InteractiveOrganism.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/gui/InteractiveOrganism.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/gui/InteractiveOrganism.cpp.i
 .PHONY : gui/InteractiveOrganism.cpp.i
 
 gui/InteractiveOrganism.s: gui/InteractiveOrganism.cpp.s
@@ -201,6 +477,7 @@ gui/InteractiveOrganism.s: gui/InteractiveOrganism.cpp.s
 # target to generate assembly for a file
 gui/InteractiveOrganism.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/gui/InteractiveOrganism.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/gui/InteractiveOrganism.cpp.s
 .PHONY : gui/InteractiveOrganism.cpp.s
 
 gui/MainWindow.o: gui/MainWindow.cpp.o
@@ -209,6 +486,7 @@ gui/MainWindow.o: gui/MainWindow.cpp.o
 # target to build an object file
 gui/MainWindow.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/gui/MainWindow.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/gui/MainWindow.cpp.o
 .PHONY : gui/MainWindow.cpp.o
 
 gui/MainWindow.i: gui/MainWindow.cpp.i
@@ -217,6 +495,7 @@ gui/MainWindow.i: gui/MainWindow.cpp.i
 # target to preprocess a source file
 gui/MainWindow.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/gui/MainWindow.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/gui/MainWindow.cpp.i
 .PHONY : gui/MainWindow.cpp.i
 
 gui/MainWindow.s: gui/MainWindow.cpp.s
@@ -225,6 +504,7 @@ gui/MainWindow.s: gui/MainWindow.cpp.s
 # target to generate assembly for a file
 gui/MainWindow.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/gui/MainWindow.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/gui/MainWindow.cpp.s
 .PHONY : gui/MainWindow.cpp.s
 
 gui/moc_MainWindow.o: gui/moc_MainWindow.cpp.o
@@ -329,6 +609,7 @@ src/Carnivore.o: src/Carnivore.cpp.o
 # target to build an object file
 src/Carnivore.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Carnivore.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Carnivore.cpp.o
 .PHONY : src/Carnivore.cpp.o
 
 src/Carnivore.i: src/Carnivore.cpp.i
@@ -337,6 +618,7 @@ src/Carnivore.i: src/Carnivore.cpp.i
 # target to preprocess a source file
 src/Carnivore.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Carnivore.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Carnivore.cpp.i
 .PHONY : src/Carnivore.cpp.i
 
 src/Carnivore.s: src/Carnivore.cpp.s
@@ -345,6 +627,7 @@ src/Carnivore.s: src/Carnivore.cpp.s
 # target to generate assembly for a file
 src/Carnivore.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Carnivore.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Carnivore.cpp.s
 .PHONY : src/Carnivore.cpp.s
 
 src/Herbivore.o: src/Herbivore.cpp.o
@@ -353,6 +636,7 @@ src/Herbivore.o: src/Herbivore.cpp.o
 # target to build an object file
 src/Herbivore.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Herbivore.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Herbivore.cpp.o
 .PHONY : src/Herbivore.cpp.o
 
 src/Herbivore.i: src/Herbivore.cpp.i
@@ -361,6 +645,7 @@ src/Herbivore.i: src/Herbivore.cpp.i
 # target to preprocess a source file
 src/Herbivore.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Herbivore.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Herbivore.cpp.i
 .PHONY : src/Herbivore.cpp.i
 
 src/Herbivore.s: src/Herbivore.cpp.s
@@ -369,6 +654,7 @@ src/Herbivore.s: src/Herbivore.cpp.s
 # target to generate assembly for a file
 src/Herbivore.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Herbivore.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Herbivore.cpp.s
 .PHONY : src/Herbivore.cpp.s
 
 src/Organism.o: src/Organism.cpp.o
@@ -377,6 +663,7 @@ src/Organism.o: src/Organism.cpp.o
 # target to build an object file
 src/Organism.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Organism.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Organism.cpp.o
 .PHONY : src/Organism.cpp.o
 
 src/Organism.i: src/Organism.cpp.i
@@ -385,6 +672,7 @@ src/Organism.i: src/Organism.cpp.i
 # target to preprocess a source file
 src/Organism.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Organism.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Organism.cpp.i
 .PHONY : src/Organism.cpp.i
 
 src/Organism.s: src/Organism.cpp.s
@@ -393,6 +681,7 @@ src/Organism.s: src/Organism.cpp.s
 # target to generate assembly for a file
 src/Organism.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Organism.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Organism.cpp.s
 .PHONY : src/Organism.cpp.s
 
 src/Plant.o: src/Plant.cpp.o
@@ -401,6 +690,7 @@ src/Plant.o: src/Plant.cpp.o
 # target to build an object file
 src/Plant.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Plant.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Plant.cpp.o
 .PHONY : src/Plant.cpp.o
 
 src/Plant.i: src/Plant.cpp.i
@@ -409,6 +699,7 @@ src/Plant.i: src/Plant.cpp.i
 # target to preprocess a source file
 src/Plant.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Plant.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Plant.cpp.i
 .PHONY : src/Plant.cpp.i
 
 src/Plant.s: src/Plant.cpp.s
@@ -417,6 +708,7 @@ src/Plant.s: src/Plant.cpp.s
 # target to generate assembly for a file
 src/Plant.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Plant.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Plant.cpp.s
 .PHONY : src/Plant.cpp.s
 
 src/PoisonousPlant.o: src/PoisonousPlant.cpp.o
@@ -425,6 +717,7 @@ src/PoisonousPlant.o: src/PoisonousPlant.cpp.o
 # target to build an object file
 src/PoisonousPlant.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/PoisonousPlant.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/PoisonousPlant.cpp.o
 .PHONY : src/PoisonousPlant.cpp.o
 
 src/PoisonousPlant.i: src/PoisonousPlant.cpp.i
@@ -433,6 +726,7 @@ src/PoisonousPlant.i: src/PoisonousPlant.cpp.i
 # target to preprocess a source file
 src/PoisonousPlant.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/PoisonousPlant.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/PoisonousPlant.cpp.i
 .PHONY : src/PoisonousPlant.cpp.i
 
 src/PoisonousPlant.s: src/PoisonousPlant.cpp.s
@@ -441,6 +735,7 @@ src/PoisonousPlant.s: src/PoisonousPlant.cpp.s
 # target to generate assembly for a file
 src/PoisonousPlant.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/PoisonousPlant.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/PoisonousPlant.cpp.s
 .PHONY : src/PoisonousPlant.cpp.s
 
 src/Reserve.o: src/Reserve.cpp.o
@@ -449,6 +744,7 @@ src/Reserve.o: src/Reserve.cpp.o
 # target to build an object file
 src/Reserve.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Reserve.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Reserve.cpp.o
 .PHONY : src/Reserve.cpp.o
 
 src/Reserve.i: src/Reserve.cpp.i
@@ -457,6 +753,7 @@ src/Reserve.i: src/Reserve.cpp.i
 # target to preprocess a source file
 src/Reserve.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Reserve.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Reserve.cpp.i
 .PHONY : src/Reserve.cpp.i
 
 src/Reserve.s: src/Reserve.cpp.s
@@ -465,6 +762,7 @@ src/Reserve.s: src/Reserve.cpp.s
 # target to generate assembly for a file
 src/Reserve.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Reserve.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Reserve.cpp.s
 .PHONY : src/Reserve.cpp.s
 
 src/Scavenger.o: src/Scavenger.cpp.o
@@ -473,6 +771,7 @@ src/Scavenger.o: src/Scavenger.cpp.o
 # target to build an object file
 src/Scavenger.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Scavenger.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Scavenger.cpp.o
 .PHONY : src/Scavenger.cpp.o
 
 src/Scavenger.i: src/Scavenger.cpp.i
@@ -481,6 +780,7 @@ src/Scavenger.i: src/Scavenger.cpp.i
 # target to preprocess a source file
 src/Scavenger.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Scavenger.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Scavenger.cpp.i
 .PHONY : src/Scavenger.cpp.i
 
 src/Scavenger.s: src/Scavenger.cpp.s
@@ -489,6 +789,7 @@ src/Scavenger.s: src/Scavenger.cpp.s
 # target to generate assembly for a file
 src/Scavenger.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/Scavenger.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/Scavenger.cpp.s
 .PHONY : src/Scavenger.cpp.s
 
 src/SimulationController.o: src/SimulationController.cpp.o
@@ -497,6 +798,7 @@ src/SimulationController.o: src/SimulationController.cpp.o
 # target to build an object file
 src/SimulationController.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/SimulationController.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/SimulationController.cpp.o
 .PHONY : src/SimulationController.cpp.o
 
 src/SimulationController.i: src/SimulationController.cpp.i
@@ -505,6 +807,7 @@ src/SimulationController.i: src/SimulationController.cpp.i
 # target to preprocess a source file
 src/SimulationController.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/SimulationController.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/SimulationController.cpp.i
 .PHONY : src/SimulationController.cpp.i
 
 src/SimulationController.s: src/SimulationController.cpp.s
@@ -513,6 +816,7 @@ src/SimulationController.s: src/SimulationController.cpp.s
 # target to generate assembly for a file
 src/SimulationController.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/SimulationController.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/SimulationController.cpp.s
 .PHONY : src/SimulationController.cpp.s
 
 src/SimulationThread.o: src/SimulationThread.cpp.o
@@ -521,6 +825,7 @@ src/SimulationThread.o: src/SimulationThread.cpp.o
 # target to build an object file
 src/SimulationThread.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/SimulationThread.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/SimulationThread.cpp.o
 .PHONY : src/SimulationThread.cpp.o
 
 src/SimulationThread.i: src/SimulationThread.cpp.i
@@ -529,6 +834,7 @@ src/SimulationThread.i: src/SimulationThread.cpp.i
 # target to preprocess a source file
 src/SimulationThread.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/SimulationThread.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/SimulationThread.cpp.i
 .PHONY : src/SimulationThread.cpp.i
 
 src/SimulationThread.s: src/SimulationThread.cpp.s
@@ -537,6 +843,7 @@ src/SimulationThread.s: src/SimulationThread.cpp.s
 # target to generate assembly for a file
 src/SimulationThread.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/SimulationThread.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/SimulationThread.cpp.s
 .PHONY : src/SimulationThread.cpp.s
 
 src/main.o: src/main.cpp.o
@@ -545,6 +852,7 @@ src/main.o: src/main.cpp.o
 # target to build an object file
 src/main.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/main.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/main.cpp.o
 .PHONY : src/main.cpp.o
 
 src/main.i: src/main.cpp.i
@@ -553,6 +861,7 @@ src/main.i: src/main.cpp.i
 # target to preprocess a source file
 src/main.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/main.cpp.i
 .PHONY : src/main.cpp.i
 
 src/main.s: src/main.cpp.s
@@ -561,7 +870,32 @@ src/main.s: src/main.cpp.s
 # target to generate assembly for a file
 src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem.dir/build.make CMakeFiles/ecosystem.dir/src/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
+
+tests/OrganismTest.o: tests/OrganismTest.cpp.o
+.PHONY : tests/OrganismTest.o
+
+# target to build an object file
+tests/OrganismTest.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/tests/OrganismTest.cpp.o
+.PHONY : tests/OrganismTest.cpp.o
+
+tests/OrganismTest.i: tests/OrganismTest.cpp.i
+.PHONY : tests/OrganismTest.i
+
+# target to preprocess a source file
+tests/OrganismTest.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/tests/OrganismTest.cpp.i
+.PHONY : tests/OrganismTest.cpp.i
+
+tests/OrganismTest.s: tests/OrganismTest.cpp.s
+.PHONY : tests/OrganismTest.s
+
+# target to generate assembly for a file
+tests/OrganismTest.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ecosystem_tests.dir/build.make CMakeFiles/ecosystem_tests.dir/tests/OrganismTest.cpp.s
+.PHONY : tests/OrganismTest.cpp.s
 
 # Help Target
 help:
@@ -570,13 +904,36 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
+	@echo "... install"
+	@echo "... install/local"
+	@echo "... install/strip"
+	@echo "... list_install_components"
 	@echo "... rebuild_cache"
+	@echo "... test"
 	@echo "... ecosystem_autogen"
 	@echo "... ecosystem_autogen_timestamp_deps"
+	@echo "... ecosystem_tests_autogen"
+	@echo "... ecosystem_tests_autogen_timestamp_deps"
+	@echo "... gmock_autogen"
+	@echo "... gmock_autogen_timestamp_deps"
+	@echo "... gmock_main_autogen"
+	@echo "... gmock_main_autogen_timestamp_deps"
+	@echo "... gtest_autogen"
+	@echo "... gtest_autogen_timestamp_deps"
+	@echo "... gtest_main_autogen"
+	@echo "... gtest_main_autogen_timestamp_deps"
 	@echo "... ecosystem"
+	@echo "... ecosystem_tests"
+	@echo "... gmock"
+	@echo "... gmock_main"
+	@echo "... gtest"
+	@echo "... gtest_main"
 	@echo "... ecosystem_autogen/mocs_compilation.o"
 	@echo "... ecosystem_autogen/mocs_compilation.i"
 	@echo "... ecosystem_autogen/mocs_compilation.s"
+	@echo "... ecosystem_tests_autogen/mocs_compilation.o"
+	@echo "... ecosystem_tests_autogen/mocs_compilation.i"
+	@echo "... ecosystem_tests_autogen/mocs_compilation.s"
 	@echo "... gui/InteractiveOrganism.o"
 	@echo "... gui/InteractiveOrganism.i"
 	@echo "... gui/InteractiveOrganism.s"
@@ -625,6 +982,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... tests/OrganismTest.o"
+	@echo "... tests/OrganismTest.i"
+	@echo "... tests/OrganismTest.s"
 .PHONY : help
 
 

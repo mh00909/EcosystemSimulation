@@ -12,7 +12,7 @@ public:
     Organism(int x, int y, int energy, int sceneX, int sceneY);
 
     // Metody wirtualne do nadpisania przez klasy pochodne
-    virtual void move(int maxX, int maxY, int sceneX, int sceneY) = 0;
+    virtual void move(int maxX, int maxY, int sceneX, int sceneY, Reserve *reserve) = 0;
     virtual void interact(Reserve* reserve) = 0;
     virtual void updateEnergy() = 0;
 
@@ -36,6 +36,8 @@ public:
     bool isEatenByScavenger() const;
     void markAsDead();
     void setEaten();
+
+    bool updatedOrganisms = false; // czy zwiększono statystyki
 
 protected:
     int x, y;
