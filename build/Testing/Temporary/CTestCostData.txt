@@ -1,3 +1,0 @@
-OrganismTest 0 0
----
-OrganismTest
